@@ -72,6 +72,7 @@ const Map = () => {
   const [styleData, setStyleData] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedPin, setSelectedPin] = useState(null);
+  const markerRefs = useRef({});
 
   useEffect(() => {
     if (!MAPBOX_TOKEN) {
@@ -146,10 +147,11 @@ const Map = () => {
       });
 
       // Add pins as markers
+      markerRefs.current = {};
       pins.forEach(pin => {
         const el = document.createElement('div');
         el.className = 'custom-marker';
-        el.style.background = '#1abc9c';
+        el.style.background = selectedPin === pin.id ? '#dc2626' : '#1abc9c';
         el.style.width = '32px';
         el.style.height = '32px';
         el.style.borderRadius = '50%';
@@ -162,15 +164,15 @@ const Map = () => {
         el.style.cursor = 'pointer';
         el.addEventListener('click', () => {
           setSelectedPin(pin.id);
-          // Optionally, scroll to the infowindow
           const infoEl = document.getElementById(`infowindow-${pin.id}`);
           if (infoEl) {
             infoEl.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
           }
         });
-        new mapboxgl.Marker(el)
+        const marker = new mapboxgl.Marker(el)
           .setLngLat(pin.coordinates)
           .addTo(map.current);
+        markerRefs.current[pin.id] = { marker, el };
       });
 
       // Add error handling
@@ -221,6 +223,15 @@ const Map = () => {
       setError(err.message);
     }
   }, [styleData, isLoading]);
+
+  // Update marker color when selectedPin changes
+  useEffect(() => {
+    Object.entries(markerRefs.current).forEach(([id, ref]) => {
+      if (ref && ref.el) {
+        ref.el.style.background = selectedPin == id ? '#dc2626' : '#1abc9c';
+      }
+    });
+  }, [selectedPin]);
 
   if (error) {
     return (
@@ -299,6 +310,7 @@ const Map = () => {
               boxShadow: selectedPin === pin.id ? '0 2px 12px #22c55e33' : '0 1px 3px rgba(0,0,0,0.1)',
               transition: 'box-shadow 0.2s, border 0.2s',
               outline: selectedPin === pin.id ? '2px solid #22c55e' : 'none',
+              position: 'relative',
             }}
             onClick={() => {
               setSelectedPin(pin.id);
@@ -307,6 +319,24 @@ const Map = () => {
               }
             }}
           >
+            {/* Number badge */}
+            <div style={{
+              position: 'absolute',
+              top: 10,
+              left: 10,
+              width: 32,
+              height: 32,
+              background: selectedPin === pin.id ? '#dc2626' : '#22c55e',
+              color: '#fff',
+              borderRadius: '50%',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontWeight: 'bold',
+              fontSize: 18,
+              boxShadow: '0 2px 6px rgba(0,0,0,0.10)',
+              zIndex: 2
+            }}>{pin.id}</div>
             <img src={pin.image} alt={pin.title} style={{ width: '100%', height: 80, objectFit: 'cover' }} />
             <div style={{ padding: 10 }}>
               <div style={{ color: '#22c55e', fontWeight: 'bold', fontSize: '1.1em' }}>{pin.title}</div>
