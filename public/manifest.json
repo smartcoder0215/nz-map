@@ -1,6 +1,6 @@
 {
-  "short_name": "React App",
-  "name": "Create React App Sample",
+  "short_name": "NZ Map",
+  "name": "New Zealand Map Application",
   "icons": [
     {
       "src": "favicon.ico",
@@ -20,6 +20,16 @@
   ],
   "start_url": ".",
   "display": "standalone",
-  "theme_color": "#000000",
-  "background_color": "#ffffff"
+  "theme_color": "#22c55e",
+  "background_color": "#ffffff",
+  "description": "Interactive map of New Zealand showcasing locations with booking capabilities and detailed information",
+  "orientation": "portrait",
+  "categories": ["travel", "maps", "tourism"],
+  "screenshots": [
+    {
+      "src": "screenshot1.png",
+      "sizes": "1280x720",
+      "type": "image/png"
+    }
+  ]
 }

@@ -1,70 +1,115 @@
-# Getting Started with Create React App
+# New Zealand Map Application
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+An interactive map application showcasing locations across New Zealand with detailed information and booking capabilities.
 
-## Available Scripts
+## Features
 
-In the project directory, you can run:
+- Interactive map with custom markers
+- Location information cards with images and descriptions
+- Booking and direction links for each location
+- Admin dashboard for managing locations
+- Responsive design for mobile and desktop
 
-### `npm start`
+## Tech Stack
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+- Frontend: React.js with Mapbox GL
+- Backend: Node.js with Express
+- Database: MongoDB
+- Deployment: Vercel (Frontend) and Railway (Backend)
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+## Prerequisites
 
-### `npm test`
+- Node.js (v14 or higher)
+- MongoDB database
+- Mapbox account and access token
+- Railway account for backend deployment
+- Vercel account for frontend deployment
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+## Environment Variables
 
-### `npm run build`
+### Frontend (.env)
+```
+REACT_APP_API_URL=https://your-railway-app-url.railway.app
+REACT_APP_MAPBOX_TOKEN=your_mapbox_token_here
+```
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+### Backend (.env)
+```
+MONGODB_URI=your_mongodb_connection_string
+PORT=5000
+```
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+## Local Development Setup
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+1. Clone the repository
+```bash
+git clone <repository-url>
+cd map-newzealand
+```
 
-### `npm run eject`
+2. Install dependencies
+```bash
+npm install
+```
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+3. Create a `.env` file in the root directory with the required environment variables
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+4. Start the development server
+```bash
+npm start
+```
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+## Deployment
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+### Backend (Railway)
 
-## Learn More
+1. Create a new project on Railway
+2. Connect your GitHub repository
+3. Add environment variables:
+   - `MONGODB_URI`
+   - `PORT`
+4. Railway will automatically deploy your backend
+5. Copy the provided Railway URL
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+### Frontend (Vercel)
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+1. Create a new project on Vercel
+2. Connect your GitHub repository
+3. Add environment variables:
+   - `REACT_APP_API_URL` (Railway URL)
+   - `REACT_APP_MAPBOX_TOKEN`
+4. Vercel will automatically deploy your frontend
 
-### Code Splitting
+## Project Structure
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+```
+map-newzealand/
+├── public/
+├── src/
+│   ├── components/
+│   │   ├── Map.js
+│   │   └── Dashboard.js
+│   ├── App.js
+│   └── index.js
+├── package.json
+└── README.md
+```
 
-### Analyzing the Bundle Size
+## API Endpoints
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+- `GET /api/pins` - Get all pins
+- `POST /api/pins` - Create a new pin
+- `PATCH /api/pins/:id` - Update a pin
+- `DELETE /api/pins/:id` - Delete a pin
 
-### Making a Progressive Web App
+## Contributing
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
 
-### Advanced Configuration
+## License
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+This project is licensed under the MIT License - see the LICENSE file for details.
