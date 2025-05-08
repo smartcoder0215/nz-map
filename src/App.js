@@ -3,6 +3,8 @@ import { BrowserRouter as Router, Routes, Route, Link, useLocation } from 'react
 import Map from './components/Map';
 import Dashboard from './components/Dashboard';
 
+const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+
 function App() {
   const [pins, setPins] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -12,7 +14,7 @@ function App() {
   useEffect(() => {
     const fetchPins = async () => {
       try {
-        const response = await fetch('http://localhost:5000/api/pins', {
+        const response = await fetch(`${API_URL}/api/pins`, {
           method: 'GET',
           headers: {
             'Accept': 'application/json',
@@ -38,7 +40,7 @@ function App() {
         setPins(transformedPins);
       } catch (err) {
         console.error('Error fetching pins:', err);
-        setError(err.message || 'Failed to connect to the server. Please make sure the backend server is running at http://localhost:5000');
+        setError(err.message || 'Failed to connect to the server. Please make sure the backend server is running.');
       } finally {
         setLoading(false);
       }

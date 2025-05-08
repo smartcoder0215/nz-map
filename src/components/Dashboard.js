@@ -1,5 +1,7 @@
 import React, { useState, useRef } from 'react';
 
+const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+
 function Dashboard({ pins, setPins }) {
   const [form, setForm] = useState({
     title: '',
@@ -80,7 +82,7 @@ function Dashboard({ pins, setPins }) {
     try {
       if (editingId) {
         // Update existing pin
-        const response = await fetch(`http://localhost:5000/api/pins/${editingId}`, {
+        const response = await fetch(`${API_URL}/api/pins/${editingId}`, {
           method: 'PATCH',
           headers: {
             'Content-Type': 'application/json',
@@ -105,7 +107,7 @@ function Dashboard({ pins, setPins }) {
         } : p));
       } else {
         // Create new pin
-        const response = await fetch('http://localhost:5000/api/pins', {
+        const response = await fetch(`${API_URL}/api/pins`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -138,7 +140,7 @@ function Dashboard({ pins, setPins }) {
 
   const handleDelete = async id => {
     try {
-      const response = await fetch(`http://localhost:5000/api/pins/${id}`, {
+      const response = await fetch(`${API_URL}/api/pins/${id}`, {
         method: 'DELETE',
       });
 
