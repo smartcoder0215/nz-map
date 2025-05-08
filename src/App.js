@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Link, useLocation } from 'react-router-dom';
 import Map from './components/Map';
 import Dashboard from './components/Dashboard';
 
@@ -7,6 +7,7 @@ function App() {
   const [pins, setPins] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [mapKey, setMapKey] = useState(0);
 
   useEffect(() => {
     const fetchPins = async () => {
@@ -45,6 +46,11 @@ function App() {
 
     fetchPins();
   }, []);
+
+  // Function to handle navigation and map re-render
+  const handleNavigation = () => {
+    setMapKey(prev => prev + 1);
+  };
 
   if (loading) {
     return (
@@ -94,11 +100,11 @@ function App() {
   return (
     <Router>
       <nav style={{ padding: 16, background: '#f3f4f6', borderBottom: '1px solid #e5e7eb', marginBottom: 16 }}>
-        <Link to="/" style={{ marginRight: 16 }}>Map</Link>
+        <Link to="/" onClick={handleNavigation} style={{ marginRight: 16 }}>Map</Link>
         <Link to="/dashboard">Dashboard</Link>
       </nav>
       <Routes>
-        <Route path="/" element={<Map pins={pins} setPins={setPins} />} />
+        <Route path="/" element={<Map key={mapKey} pins={pins} setPins={setPins} />} />
         <Route path="/dashboard" element={<Dashboard pins={pins} setPins={setPins} />} />
       </Routes>
     </Router>

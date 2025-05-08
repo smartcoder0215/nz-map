@@ -21,6 +21,23 @@ const Map = ({ pins }) => {
   const [selectedPin, setSelectedPin] = useState(null);
   const markerRefs = useRef({});
 
+  // Cleanup function to remove map and markers
+  const cleanupMap = () => {
+    if (map.current) {
+      // Remove all markers
+      Object.values(markerRefs.current).forEach(({ marker }) => {
+        if (marker) {
+          marker.remove();
+        }
+      });
+      markerRefs.current = {};
+
+      // Remove the map
+      map.current.remove();
+      map.current = null;
+    }
+  };
+
   useEffect(() => {
     if (!MAPBOX_TOKEN) {
       setError('Mapbox token is missing');
@@ -58,6 +75,11 @@ const Map = ({ pins }) => {
     };
 
     loadMapResources();
+
+    // Cleanup on unmount
+    return () => {
+      cleanupMap();
+    };
   }, []);
 
   useEffect(() => {
@@ -163,13 +185,15 @@ const Map = ({ pins }) => {
         console.error('Source data error:', e);
       });
 
-      // Clean up on unmount
-      return () => map.current.remove();
+      // Cleanup on unmount
+      return () => {
+        cleanupMap();
+      };
     } catch (err) {
       console.error('Error initializing map:', err);
       setError(err.message);
     }
-  }, [styleData, isLoading]);
+  }, [styleData, isLoading, pins]);
 
   // Update marker color when selectedPin changes
   useEffect(() => {
