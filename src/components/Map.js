@@ -12,60 +12,7 @@ console.log('Token prefix:', MAPBOX_TOKEN?.substring(0, 10));
 
 mapboxgl.accessToken = MAPBOX_TOKEN;
 
-const pins = [
-  {
-    id: 1,
-    coordinates: [174.7633, -36.8485], // Auckland
-    image: 'https://images.unsplash.com/photo-1465101046530-73398c7f28ca?auto=format&fit=crop&w=400&q=80',
-    title: 'AUCKLAND BATHS',
-    description: 'Modern bathhouse with <b>natural hot springs</b> and city views.',
-    google: 'https://maps.google.com/?q=-36.8485,174.7633',
-    direction: 'https://maps.google.com/dir/?api=1&destination=-36.8485,174.7633',
-    website: 'https://aucklandbaths.example.com'
-  },
-  {
-    id: 2,
-    coordinates: [172.6362, -43.5321], // Christchurch
-    image: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=400&q=80',
-    title: 'CHRISTCHURCH ONSEN',
-    description: 'Relax in <b>geothermal pools</b> with views of the Southern Alps.',
-    google: 'https://maps.google.com/?q=-43.5321,172.6362',
-    direction: 'https://maps.google.com/dir/?api=1&destination=-43.5321,172.6362',
-    website: 'https://christchurchonsen.example.com'
-  },
-  {
-    id: 3,
-    coordinates: [170.5036, -45.8742], // Dunedin
-    image: 'https://images.unsplash.com/photo-1519125323398-675f0ddb6308?auto=format&fit=crop&w=400&q=80',
-    title: 'DUNEDIN SPA',
-    description: 'Historic spa with <b>art deco architecture</b> and mineral-rich waters.',
-    google: 'https://maps.google.com/?q=-45.8742,170.5036',
-    direction: 'https://maps.google.com/dir/?api=1&destination=-45.8742,170.5036',
-    website: 'https://dunedinspa.example.com'
-  },
-  {
-    id: 4,
-    coordinates: [175.2793, -37.7870], // Hamilton
-    image: 'https://images.unsplash.com/photo-1464983953574-0892a716854b?auto=format&fit=crop&w=400&q=80',
-    title: 'HAMILTON HOT SPRINGS',
-    description: 'Family-friendly hot springs with <b>lush gardens</b> and picnic areas.',
-    google: 'https://maps.google.com/?q=-37.7870,175.2793',
-    direction: 'https://maps.google.com/dir/?api=1&destination=-37.7870,175.2793',
-    website: 'https://hamiltonhotsprings.example.com'
-  },
-  {
-    id: 5,
-    coordinates: [173.2839, -41.2706], // Nelson
-    image: 'https://images.unsplash.com/photo-1500534314209-a25ddb2bd429?auto=format&fit=crop&w=400&q=80',
-    title: 'NELSON MINERAL POOLS',
-    description: 'Outdoor mineral pools surrounded by <b>native bush</b> and mountain views.',
-    google: 'https://maps.google.com/?q=-41.2706,173.2839',
-    direction: 'https://maps.google.com/dir/?api=1&destination=-41.2706,173.2839',
-    website: 'https://nelsonmineralpools.example.com'
-  },
-];
-
-const Map = () => {
+const Map = ({ pins }) => {
   const mapContainer = useRef(null);
   const map = useRef(null);
   const [error, setError] = useState(null);
@@ -342,9 +289,9 @@ const Map = () => {
               <div style={{ color: '#22c55e', fontWeight: 'bold', fontSize: '1.1em' }}>{pin.title}</div>
               <div style={{ fontSize: '0.95em', margin: '6px 0' }} dangerouslySetInnerHTML={{ __html: pin.description }} />
               <div style={{ display: 'flex', gap: 6, marginTop: 10 }}>
-                <a href={pin.google} target="_blank" rel="noopener noreferrer" style={{ flex: 1, textAlign: 'center', background: '#16a34a', color: '#fff', borderRadius: 4, padding: '4px 0', textDecoration: 'none' }}>Google</a>
-                <a href={pin.direction} target="_blank" rel="noopener noreferrer" style={{ flex: 1, textAlign: 'center', background: '#2563eb', color: '#fff', borderRadius: 4, padding: '4px 0', textDecoration: 'none' }}>Direction</a>
-                <a href={pin.website} target="_blank" rel="noopener noreferrer" style={{ flex: 1, textAlign: 'center', background: '#dc2626', color: '#fff', borderRadius: 4, padding: '4px 0', textDecoration: 'none' }}>Website</a>
+                <a href={pin.google} target="_blank" rel="noopener noreferrer" style={{ flex: 1, textAlign: 'center', background: '#16a34a', color: '#fff', borderRadius: 4, padding: '6px 4px', textDecoration: 'none', fontSize: '0.9em', whiteSpace: 'nowrap' }}>Book Now</a>
+                <a href={pin.direction} target="_blank" rel="noopener noreferrer" style={{ flex: 1, textAlign: 'center', background: '#2563eb', color: '#fff', borderRadius: 4, padding: '6px 4px', textDecoration: 'none', fontSize: '0.9em', whiteSpace: 'nowrap' }}>Direction</a>
+                <a href={pin.website} target="_blank" rel="noopener noreferrer" style={{ flex: 1, textAlign: 'center', background: '#dc2626', color: '#fff', borderRadius: 4, padding: '6px 4px', textDecoration: 'none', fontSize: '0.9em', whiteSpace: 'nowrap' }}>Learn More</a>
               </div>
             </div>
           </div>
