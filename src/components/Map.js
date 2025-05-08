@@ -117,7 +117,7 @@ const Map = ({ pins }) => {
 
       // Add pins as markers
       markerRefs.current = {};
-      pins.forEach(pin => {
+      pins.forEach((pin, index) => {
         const el = document.createElement('div');
         el.className = 'custom-marker';
         el.style.background = selectedPin === pin.id ? '#dc2626' : '#1abc9c';
@@ -129,7 +129,7 @@ const Map = ({ pins }) => {
         el.style.justifyContent = 'center';
         el.style.color = 'white';
         el.style.fontWeight = 'bold';
-        el.innerText = pin.id;
+        el.innerText = (index + 1).toString();
         el.style.cursor = 'pointer';
         el.addEventListener('click', () => {
           setSelectedPin(pin.id);
@@ -267,7 +267,7 @@ const Map = ({ pins }) => {
         borderTop: '1px solid #e5e7eb',
         boxShadow: '0 -2px 8px rgba(0,0,0,0.07)'
       }}>
-        {pins.map(pin => (
+        {pins.map((pin, index) => (
           <div
             key={pin.id}
             id={`infowindow-${pin.id}`}
@@ -307,7 +307,7 @@ const Map = ({ pins }) => {
               fontSize: 18,
               boxShadow: '0 2px 6px rgba(0,0,0,0.10)',
               zIndex: 2
-            }}>{pin.id}</div>
+            }}>{index + 1}</div>
             <img src={pin.image} alt={pin.title} style={{ width: '100%', height: 80, objectFit: 'cover' }} />
             <div style={{ padding: 10 }}>
               <div style={{ color: '#22c55e', fontWeight: 'bold', fontSize: '1.1em' }}>{pin.title}</div>
