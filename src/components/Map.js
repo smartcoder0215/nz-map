@@ -369,7 +369,11 @@ const Map = ({ pins }) => {
             onClick={() => {
               setSelectedPin(pin.id);
               if (map.current) {
-                map.current.flyTo({ center: pin.coordinates, zoom: 13 });
+                map.current.panTo(pin.coordinates);
+              }
+              const infoEl = document.getElementById(`infowindow-${pin.id}`);
+              if (infoEl) {
+                infoEl.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
               }
             }}
           >
