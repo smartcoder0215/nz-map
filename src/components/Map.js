@@ -125,8 +125,8 @@ const Map = ({ pins }) => {
         attributionControl: true,
         // Add bounds to restrict the view to New Zealand
         maxBounds: [
-          [160.0, -52.0], // Southwest coordinates (expanded for zoom out)
-          [185.0, -30.0]  // Northeast coordinates (expanded for zoom out)
+          [164.0, -50.0], // Southwest coordinates (matching image)
+          [180.0, -31.0]  // Northeast coordinates (matching image)
         ],
         // Disable rotation
         bearing: 0,
@@ -210,7 +210,7 @@ const Map = ({ pins }) => {
             type: 'raster',
             source: 'nz-overlay',
             paint: {
-              'raster-opacity': 0.85
+              'raster-opacity': 1
             }
           });
 
