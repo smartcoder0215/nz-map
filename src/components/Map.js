@@ -21,6 +21,34 @@ const Map = ({ pins }) => {
   const [selectedPin, setSelectedPin] = useState(null);
   const markerRefs = useRef({});
 
+  // Function to add image overlay
+  const addImageOverlay = (imageUrl, bounds) => {
+    if (!map.current) return;
+
+    // Add the image source
+    map.current.addSource('overlay-image', {
+      type: 'image',
+      url: imageUrl,
+      coordinates: bounds
+    });
+
+    // Add the image layer
+    map.current.addLayer({
+      id: 'overlay-layer',
+      type: 'raster',
+      source: 'overlay-image',
+      paint: {
+        'raster-opacity': 0.75
+      }
+    });
+  };
+
+  // Example usage of addImageOverlay:
+  // addImageOverlay('path/to/your/image.jpg', [
+  //   [172.5, -41.5], // Southwest coordinates
+  //   [174.5, -40.5]  // Northeast coordinates
+  // ]);
+
   // Cleanup function to remove map and markers
   const cleanupMap = () => {
     if (map.current) {
@@ -92,9 +120,17 @@ const Map = ({ pins }) => {
         style: styleData,
         center: [172.5, -41.5], // Center of New Zealand
         zoom: 5.5, // Adjusted zoom to show full country
-        minZoom: 4, // Prevent zooming out too far
+        minZoom: 2, // Allow zooming out further
         maxZoom: 15, // Prevent zooming in too close
         attributionControl: true,
+        // Add bounds to restrict the view to New Zealand
+        maxBounds: [
+          [160.0, -52.0], // Southwest coordinates (expanded for zoom out)
+          [185.0, -30.0]  // Northeast coordinates (expanded for zoom out)
+        ],
+        // Disable rotation
+        bearing: 0,
+        pitch: 0,
         transformRequest: (url, resourceType) => {
           console.log('Transform request:', { url, resourceType });
           if (url.includes('mapbox.com')) {
@@ -145,6 +181,7 @@ const Map = ({ pins }) => {
       });
 
       // Add error handling
+      
       map.current.on('error', (e) => {
         console.error('Mapbox error:', e);
         setError(e.error?.message || 'Error loading map');
@@ -153,6 +190,57 @@ const Map = ({ pins }) => {
       // Add load handler
       map.current.on('load', () => {
         console.log('Map loaded successfully');
+        
+        // Add NZ map overlay
+        try {
+          console.log('Adding NZ overlay...');
+          map.current.addSource('nz-overlay', {
+            type: 'image',
+            url: '/nz.jpg',
+            coordinates: [
+              [161.5, -31.0], // top-left (moved left)
+              [183.0, -31.0], // top-right (moved left)
+              [181.5, -49.5], // bottom-right (moved left)
+              [161.0, -50.0]  // bottom-left (moved left)
+            ]
+          });
+
+          map.current.addLayer({
+            id: 'nz-overlay-layer',
+            type: 'raster',
+            source: 'nz-overlay',
+            paint: {
+              'raster-opacity': 0.85
+            }
+          });
+
+          // Disable map rotation
+          map.current.dragRotate.disable();
+          map.current.touchZoomRotate.disableRotation();
+
+          // Set initial view to match overlay exactly
+          map.current.fitBounds(
+            [
+              [161.0, -52.0], // Southwest (moved left)
+              [181.0, -30.0]  // Northeast (moved left)
+            ],
+            {
+              padding: 0,
+              maxZoom: 5.5
+            }
+          );
+
+          console.log('NZ overlay added successfully');
+        } catch (error) {
+          console.error('Error adding NZ overlay:', error);
+        }
+      });
+
+      // Add error handler for the source
+      map.current.on('sourcedataerror', (e) => {
+        if (e.sourceId === 'nz-overlay') {
+          console.error('Error loading NZ overlay source:', e);
+        }
       });
 
       // Add style loading handler
@@ -178,11 +266,6 @@ const Map = ({ pins }) => {
       // Add source handler
       map.current.on('sourcedata', (e) => {
         console.log('Source data event:', e);
-      });
-
-      // Add source error handler
-      map.current.on('sourcedataerror', (e) => {
-        console.error('Source data error:', e);
       });
 
       // Cleanup on unmount

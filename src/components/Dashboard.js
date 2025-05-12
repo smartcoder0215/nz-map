@@ -80,7 +80,7 @@ function Dashboard({ pins, setPins }) {
     };
 
     try {
-      if (editingId) {
+    if (editingId) {
         // Update existing pin
         const response = await fetch(`${API_URL}/api/pins/${editingId}`, {
           method: 'PATCH',
@@ -105,7 +105,7 @@ function Dashboard({ pins, setPins }) {
           direction: updatedPin.direction,
           website: updatedPin.learnmore
         } : p));
-      } else {
+    } else {
         // Create new pin
         const response = await fetch(`${API_URL}/api/pins`, {
           method: 'POST',
@@ -130,8 +130,8 @@ function Dashboard({ pins, setPins }) {
           direction: newPin.direction,
           website: newPin.learnmore
         }]);
-      }
-      closeModal();
+    }
+    closeModal();
     } catch (err) {
       console.error('Error saving pin:', err);
       setError(err.message);
@@ -148,9 +148,9 @@ function Dashboard({ pins, setPins }) {
         throw new Error('Failed to delete pin');
       }
 
-      setPins(pins.filter(p => p.id !== id));
-      if (editingId === id) {
-        closeModal();
+    setPins(pins.filter(p => p.id !== id));
+    if (editingId === id) {
+      closeModal();
       }
     } catch (err) {
       console.error('Error deleting pin:', err);
