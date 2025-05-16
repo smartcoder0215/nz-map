@@ -86,13 +86,9 @@ const Map = ({ pins }) => {
         style: blankStyle,
         center: [172.5, -41.5],
         zoom: 5.5,
-        minZoom: 2,
+        minZoom: 3,
         maxZoom: 15,
         attributionControl: true,
-        maxBounds: [
-          [164.0, -50.0],
-          [180.0, -31.0]
-        ],
         bearing: 0,
         pitch: 0,
       });
