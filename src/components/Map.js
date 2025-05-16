@@ -20,6 +20,8 @@ const Map = ({ pins }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [selectedPin, setSelectedPin] = useState(null);
   const markerRefs = useRef({});
+  const [infoWindowPosition, setInfoWindowPosition] = useState({ x: 0, y: 0 });
+  const infoWindowRef = useRef(null);
 
   // Function to add image overlay
   const addImageOverlay = (imageUrl, bounds) => {
@@ -287,6 +289,92 @@ const Map = ({ pins }) => {
     });
   }, [selectedPin]);
 
+  // Function to update infowindow position
+  const updateInfoWindowPosition = (coordinates) => {
+    if (!map.current) return;
+    const point = map.current.project(coordinates);
+    setInfoWindowPosition({
+      x: point.x,
+      y: point.y - 170 // Adjusted for infowindow height + arrow
+    });
+  };
+
+  // Update infowindow position when selectedPin changes
+  useEffect(() => {
+    if (!map.current || !selectedPin) return;
+    
+    const selectedPinData = pins.find(pin => pin.id === selectedPin);
+    if (selectedPinData) {
+      updateInfoWindowPosition(selectedPinData.coordinates);
+    }
+  }, [selectedPin, pins]);
+
+  // Update infowindow position when map moves
+  useEffect(() => {
+    const mapInstance = map.current;
+    if (!mapInstance || !selectedPin) return;
+
+    const onMove = () => {
+      const selectedPinData = pins.find(pin => pin.id === selectedPin);
+      if (selectedPinData) {
+        updateInfoWindowPosition(selectedPinData.coordinates);
+      }
+    };
+
+    mapInstance.on('move', onMove);
+    return () => {
+      if (mapInstance) {
+        mapInstance.off('move', onMove);
+      }
+    };
+  }, [selectedPin, pins]);
+
+  // Update marker click handler
+  useEffect(() => {
+    const mapInstance = map.current;
+    if (!mapInstance) return;
+
+    const cleanup = () => {
+      Object.entries(markerRefs.current).forEach(([id, ref]) => {
+        if (ref && ref.el) {
+          const newEl = ref.el.cloneNode(true);
+          ref.el.parentNode.replaceChild(newEl, ref.el);
+          ref.el = newEl;
+        }
+      });
+    };
+
+    // Clean up existing handlers
+    cleanup();
+
+    // Add new click handlers
+    Object.entries(markerRefs.current).forEach(([id, ref]) => {
+      if (ref && ref.el) {
+        ref.el.addEventListener('click', () => {
+          const pinData = pins.find(pin => pin.id === id);
+          if (pinData) {
+            updateInfoWindowPosition(pinData.coordinates);
+            setSelectedPin(id);
+          }
+        });
+      }
+    });
+
+    return cleanup;
+  }, [pins]);
+
+  // Close infowindow when clicking outside
+  useEffect(() => {
+    if (!selectedPin) return;
+    const handleClick = (e) => {
+      if (infoWindowRef.current && !infoWindowRef.current.contains(e.target)) {
+        setSelectedPin(null);
+      }
+    };
+    document.addEventListener('mousedown', handleClick);
+    return () => document.removeEventListener('mousedown', handleClick);
+  }, [selectedPin]);
+
   if (error) {
     return (
       <div style={{ 
@@ -335,79 +423,79 @@ const Map = ({ pins }) => {
   return (
     <div style={{ width: '100%', height: '100vh', position: 'relative' }}>
       <div ref={mapContainer} style={{ width: '100%', height: '100%', position: 'absolute', top: 0, left: 0 }} />
-      {/* Infowindows at the bottom */}
-      <div style={{
-        position: 'absolute',
-        left: 0,
-        right: 0,
-        bottom: 0,
-        zIndex: 10,
-        display: 'flex',
-        gap: '16px',
-        overflowX: 'auto',
-        padding: '16px',
-        background: 'rgba(255,255,255,0.85)',
-        borderTop: '1px solid #e5e7eb',
-        boxShadow: '0 -2px 8px rgba(0,0,0,0.07)'
-      }}>
-        {pins.map((pin, index) => (
-          <div
-            key={pin.id}
-            id={`infowindow-${pin.id}`}
-            style={{
-              minWidth: 260,
-              maxWidth: 260,
-              borderRadius: 10,
-              overflow: 'hidden',
-              border: selectedPin === pin.id ? '3px solid #22c55e' : '2px dashed #22c55e',
-              background: '#fff',
-              boxShadow: selectedPin === pin.id ? '0 2px 12px #22c55e33' : '0 1px 3px rgba(0,0,0,0.1)',
-              transition: 'box-shadow 0.2s, border 0.2s',
-              outline: selectedPin === pin.id ? '2px solid #22c55e' : 'none',
-              position: 'relative',
-            }}
-            onClick={() => {
-              setSelectedPin(pin.id);
-              if (map.current) {
-                map.current.panTo(pin.coordinates);
-              }
-              const infoEl = document.getElementById(`infowindow-${pin.id}`);
-              if (infoEl) {
-                infoEl.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
-              }
-            }}
-          >
-            {/* Number badge */}
-            <div style={{
-              position: 'absolute',
-              top: 10,
-              left: 10,
-              width: 32,
-              height: 32,
-              background: selectedPin === pin.id ? '#dc2626' : '#22c55e',
-              color: '#fff',
-              borderRadius: '50%',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontWeight: 'bold',
-              fontSize: 18,
-              boxShadow: '0 2px 6px rgba(0,0,0,0.10)',
-              zIndex: 2
-            }}>{index + 1}</div>
-            <img src={pin.image} alt={pin.title} style={{ width: '100%', height: 80, objectFit: 'cover' }} />
-            <div style={{ padding: 10 }}>
-              <div style={{ color: '#22c55e', fontWeight: 'bold', fontSize: '1.1em' }}>{pin.title}</div>
-              <div style={{ fontSize: '0.95em', margin: '6px 0' }} dangerouslySetInnerHTML={{ __html: pin.description }} />
-              <div style={{ display: 'flex', gap: 6, marginTop: 10 }}>
-                <a href={pin.google} target="_blank" rel="noopener noreferrer" style={{ flex: 1, textAlign: 'center', background: '#16a34a', color: '#fff', borderRadius: 4, padding: '6px 4px', textDecoration: 'none', fontSize: '0.9em', whiteSpace: 'nowrap' }}>Book Now</a>
-                <a href={pin.direction} target="_blank" rel="noopener noreferrer" style={{ flex: 1, textAlign: 'center', background: '#2563eb', color: '#fff', borderRadius: 4, padding: '6px 4px', textDecoration: 'none', fontSize: '0.9em', whiteSpace: 'nowrap' }}>Direction</a>
-                <a href={pin.website} target="_blank" rel="noopener noreferrer" style={{ flex: 1, textAlign: 'center', background: '#dc2626', color: '#fff', borderRadius: 4, padding: '6px 4px', textDecoration: 'none', fontSize: '0.9em', whiteSpace: 'nowrap' }}>Learn More</a>
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
+      {/* Single sticky infowindow */}
+      {selectedPin && pins.find(pin => pin.id === selectedPin) && (
+        <div
+          ref={infoWindowRef}
+          style={{
+            position: 'absolute',
+            left: `${infoWindowPosition.x}px`,
+            top: `${infoWindowPosition.y}px`,
+            transform: 'translateX(-50%)',
+            width: 300,
+            borderRadius: 10,
+            overflow: 'hidden',
+            border: '2px solid #22c55e',
+            background: '#fff',
+            boxShadow: '0 2px 12px rgba(0,0,0,0.15)',
+            zIndex: 10,
+            pointerEvents: 'auto',
+            paddingBottom: 16, // space for arrow
+          }}
+        >
+          {/* Infowindow content */}
+          {(() => {
+            const pin = pins.find(p => p.id === selectedPin);
+            const index = pins.findIndex(p => p.id === selectedPin);
+            return (
+              <>
+                {/* Number badge */}
+                <div style={{
+                  position: 'absolute',
+                  top: 10,
+                  left: 10,
+                  width: 32,
+                  height: 32,
+                  background: '#dc2626',
+                  color: '#fff',
+                  borderRadius: '50%',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontWeight: 'bold',
+                  fontSize: 18,
+                  boxShadow: '0 2px 6px rgba(0,0,0,0.10)',
+                  zIndex: 2
+                }}>{index + 1}</div>
+                <img src={pin.image} alt={pin.title} style={{ width: '100%', height: 150, objectFit: 'cover' }} />
+                <div style={{ padding: 15 }}>
+                  <div style={{ color: '#22c55e', fontWeight: 'bold', fontSize: '1.2em', marginBottom: 8 }}>{pin.title}</div>
+                  <div style={{ fontSize: '0.95em', margin: '8px 0', color: '#4b5563' }} dangerouslySetInnerHTML={{ __html: pin.description }} />
+                  <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
+                    <a href={pin.google} target="_blank" rel="noopener noreferrer" style={{ flex: 1, textAlign: 'center', background: '#16a34a', color: '#fff', borderRadius: 4, padding: '8px 4px', textDecoration: 'none', fontSize: '0.9em', whiteSpace: 'nowrap' }}>Book Now</a>
+                    <a href={pin.direction} target="_blank" rel="noopener noreferrer" style={{ flex: 1, textAlign: 'center', background: '#2563eb', color: '#fff', borderRadius: 4, padding: '8px 4px', textDecoration: 'none', fontSize: '0.9em', whiteSpace: 'nowrap' }}>Direction</a>
+                    <a href={pin.website} target="_blank" rel="noopener noreferrer" style={{ flex: 1, textAlign: 'center', background: '#dc2626', color: '#fff', borderRadius: 4, padding: '8px 4px', textDecoration: 'none', fontSize: '0.9em', whiteSpace: 'nowrap' }}>Learn More</a>
+                  </div>
+                </div>
+                {/* Arrow */}
+                <div style={{
+                  position: 'absolute',
+                  left: '50%',
+                  bottom: -16,
+                  transform: 'translateX(-50%)',
+                  width: 0,
+                  height: 0,
+                  borderLeft: '12px solid transparent',
+                  borderRight: '12px solid transparent',
+                  borderTop: '16px solid #fff',
+                  filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.10))',
+                  zIndex: 11
+                }} />
+              </>
+            );
+          })()}
+        </div>
+      )}
     </div>
   );
 };
