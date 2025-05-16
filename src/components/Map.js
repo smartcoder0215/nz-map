@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useState } from 'react';
+import React, { useRef, useEffect, useState, useLayoutEffect } from 'react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 
@@ -22,6 +22,7 @@ const Map = ({ pins }) => {
   const markerRefs = useRef({});
   const [infoWindowPosition, setInfoWindowPosition] = useState({ x: 0, y: 0 });
   const infoWindowRef = useRef(null);
+  const [infoWindowHeight, setInfoWindowHeight] = useState(0);
 
   // Function to add image overlay
   const addImageOverlay = (imageUrl, bounds) => {
@@ -290,14 +291,29 @@ const Map = ({ pins }) => {
   }, [selectedPin]);
 
   // Function to update infowindow position
-  const updateInfoWindowPosition = (coordinates) => {
+  const updateInfoWindowPosition = (coordinates, customHeight) => {
     if (!map.current) return;
     const point = map.current.project(coordinates);
+    const height = customHeight !== undefined ? customHeight : infoWindowHeight || 170;
     setInfoWindowPosition({
       x: point.x,
-      y: point.y - 170 // Adjusted for infowindow height + arrow
+      y: point.y - height - 20 // 20px for arrow and gap
     });
   };
+
+  // Measure infowindow height after render
+  useLayoutEffect(() => {
+    if (infoWindowRef.current && selectedPin) {
+      const height = infoWindowRef.current.offsetHeight;
+      setInfoWindowHeight(height);
+      // Update position with new height
+      const pinData = pins.find(pin => pin.id === selectedPin);
+      if (pinData) {
+        updateInfoWindowPosition(pinData.coordinates, height);
+      }
+    }
+    // eslint-disable-next-line
+  }, [selectedPin, pins]);
 
   // Update infowindow position when selectedPin changes
   useEffect(() => {
