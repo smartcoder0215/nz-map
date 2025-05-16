@@ -98,7 +98,7 @@ const Map = ({ pins }) => {
         try {
           map.current.addSource('nz-overlay', {
             type: 'image',
-            url: '/nz.jpg',
+            url: '/nz.png',
             coordinates: [
               [161.5, -31.0],
               [183.0, -31.0],
