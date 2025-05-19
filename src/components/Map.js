@@ -311,7 +311,14 @@ const Map = ({ pins }) => {
 
   return (
     <div style={{ width: '100%', height: '100vh', position: 'relative' }}>
-      <div ref={mapContainer} style={{ width: '100%', height: '100%', position: 'absolute', top: 0, left: 0 }} />
+      <div ref={mapContainer} style={{ 
+        width: '100%', 
+        height: '100%', 
+        position: 'absolute', 
+        top: 0, 
+        left: 0,
+        backgroundColor: '#e6c495'  // Add the background color
+      }} />
       {/* Single sticky infowindow */}
       {selectedPin && pins.find(pin => pin.id === selectedPin) && (
         <div
