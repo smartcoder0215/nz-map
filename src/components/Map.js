@@ -342,9 +342,9 @@ const Map = ({ pins }) => {
             width: 300,
             borderRadius: 10,
             overflow: 'hidden',
-            border: '2px solid #22c55e',
-            background: '#fff',
-            boxShadow: '0 2px 12px rgba(0,0,0,0.15)',
+            border: '2.5px solid #FFD700', // gold
+            background: '#181A1B', // dark background
+            boxShadow: '0 4px 24px rgba(0,0,0,0.45)',
             zIndex: 10,
             pointerEvents: 'auto',
             paddingBottom: 16, // space for arrow
@@ -363,25 +363,26 @@ const Map = ({ pins }) => {
                   left: 10,
                   width: 32,
                   height: 32,
-                  background: '#dc2626',
-                  color: '#fff',
+                  background: '#FFD700', // gold
+                  color: '#181A1B', // dark text
                   borderRadius: '50%',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
                   fontWeight: 'bold',
                   fontSize: 18,
-                  boxShadow: '0 2px 6px rgba(0,0,0,0.10)',
+                  boxShadow: '0 2px 8px rgba(0,0,0,0.18)',
                   zIndex: 2
                 }}>{index + 1}</div>
                 <img src={pin.image} alt={pin.title} style={{ width: '100%', height: 150, objectFit: 'cover' }} />
                 <div style={{ padding: 15 }}>
-                  <div style={{ color: '#22c55e', fontWeight: 'bold', fontSize: '1.2em', marginBottom: 8 }}>{pin.title}</div>
-                  <div style={{ fontSize: '0.95em', margin: '8px 0', color: '#4b5563' }} dangerouslySetInnerHTML={{ __html: pin.description }} />
+                  <div style={{ color: '#FFD700', fontWeight: 'bold', fontSize: '1.2em', marginBottom: 8, letterSpacing: 0.5 }}>{pin.title}</div>
+                  <div style={{ color: '#B0B3B8', fontWeight: 500, fontSize: '1em', marginBottom: 6 }}>Chest</div>
+                  <div style={{ fontSize: '0.97em', margin: '8px 0', color: '#F3F4F6' }} dangerouslySetInnerHTML={{ __html: pin.description }} />
                   <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
-                    <a href={pin.google} target="_blank" rel="noopener noreferrer" style={{ flex: 1, textAlign: 'center', background: '#16a34a', color: '#fff', borderRadius: 4, padding: '8px 4px', textDecoration: 'none', fontSize: '0.9em', whiteSpace: 'nowrap' }}>Book Now</a>
-                    <a href={pin.direction} target="_blank" rel="noopener noreferrer" style={{ flex: 1, textAlign: 'center', background: '#2563eb', color: '#fff', borderRadius: 4, padding: '8px 4px', textDecoration: 'none', fontSize: '0.9em', whiteSpace: 'nowrap' }}>Direction</a>
-                    <a href={pin.website} target="_blank" rel="noopener noreferrer" style={{ flex: 1, textAlign: 'center', background: '#dc2626', color: '#fff', borderRadius: 4, padding: '8px 4px', textDecoration: 'none', fontSize: '0.9em', whiteSpace: 'nowrap' }}>Learn More</a>
+                    <a href={pin.google} target="_blank" rel="noopener noreferrer" style={{ flex: 1, textAlign: 'center', background: '#FFD700', color: '#181A1B', borderRadius: 4, padding: '8px 4px', textDecoration: 'none', fontWeight: 700, fontSize: '0.95em', whiteSpace: 'nowrap', boxShadow: '0 1px 4px rgba(0,0,0,0.10)' }}>Book Now</a>
+                    <a href={pin.direction} target="_blank" rel="noopener noreferrer" style={{ flex: 1, textAlign: 'center', background: '#23272A', color: '#FFD700', borderRadius: 4, padding: '8px 4px', textDecoration: 'none', fontWeight: 700, fontSize: '0.95em', whiteSpace: 'nowrap', border: '1.5px solid #FFD700' }}>Direction</a>
+                    <a href={pin.website} target="_blank" rel="noopener noreferrer" style={{ flex: 1, textAlign: 'center', background: '#23272A', color: '#FFD700', borderRadius: 4, padding: '8px 4px', textDecoration: 'none', fontWeight: 700, fontSize: '0.95em', whiteSpace: 'nowrap', border: '1.5px solid #FFD700' }}>Learn More</a>
                   </div>
                 </div>
                 {/* Arrow */}
