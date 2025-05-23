@@ -148,16 +148,27 @@ const Map = ({ pins }) => {
             el.style.fontWeight = 'bold';
             el.innerText = (index + 1).toString();
             el.style.cursor = 'pointer';
-            el.addEventListener('click', () => {
+            
+            const marker = new mapboxgl.Marker(el)
+              .setLngLat(pin.coordinates)
+              .addTo(map.current);
+
+            // Add click handler directly to the marker
+            marker.getElement().addEventListener('click', () => {
+              // Center map on the clicked pin
+              map.current.easeTo({
+                center: pin.coordinates,
+                zoom: 6,
+                duration: 1000
+              });
+              
               setSelectedPin(pin.id);
               const infoEl = document.getElementById(`infowindow-${pin.id}`);
               if (infoEl) {
                 infoEl.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
               }
             });
-            const marker = new mapboxgl.Marker(el)
-              .setLngLat(pin.coordinates)
-              .addTo(map.current);
+
             markerRefs.current[pin.id] = { marker, el };
           });
 
