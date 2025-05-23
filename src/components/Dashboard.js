@@ -1,4 +1,5 @@
 import React, { useState, useRef } from 'react';
+import OverlayImageManager from './OverlayImageManager';
 
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
 
@@ -17,6 +18,7 @@ function Dashboard({ pins, setPins }) {
   const [editingId, setEditingId] = useState(null);
   const [error, setError] = useState(null);
   const modalRef = useRef();
+  const [activeOverlay, setActiveOverlay] = useState(null);
 
   const resetForm = () => setForm({
     title: '',
@@ -158,304 +160,114 @@ function Dashboard({ pins, setPins }) {
     }
   };
 
+  const handleOverlaySelect = (overlay) => {
+    setActiveOverlay(overlay);
+  };
+
   return (
-    <div style={{ 
-      maxWidth: 1000, 
-      margin: '32px auto', 
-      padding: '24px 16px',
-      '@media (max-width: 768px)': {
-        margin: '16px auto',
-        padding: '16px 12px'
-      }
-    }}>
+    <div className="container mx-auto p-4">
+      <h1 className="text-2xl font-bold mb-6">Admin Dashboard</h1>
+      
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Overlay Image Management */}
+        <div>
+          <OverlayImageManager onOverlaySelect={handleOverlaySelect} />
+        </div>
+
+        {/* Active Overlay Preview */}
+        {activeOverlay && (
+          <div className="p-4 bg-white rounded-lg shadow">
+            <h2 className="text-xl font-semibold mb-4">Active Overlay</h2>
+            <img
+              src={activeOverlay.url}
+              alt={activeOverlay.name}
+              className="w-full h-64 object-contain"
+            />
+            <p className="mt-2 text-sm text-gray-600">{activeOverlay.name}</p>
+          </div>
+        )}
+      </div>
+
       {error && (
-        <div style={{ 
-          marginBottom: 16, 
-          padding: 12, 
-          backgroundColor: '#fee2e2', 
-          border: '1px solid #ef4444',
-          borderRadius: 6,
-          color: '#dc2626',
-          fontSize: '14px',
-          '@media (max-width: 768px)': {
-            fontSize: '13px',
-            padding: '10px'
-          }
-        }}>
+        <div className="mt-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded">
           {error}
         </div>
       )}
-      <div style={{ 
-        background: '#fff', 
-        borderRadius: 16, 
-        boxShadow: '0 4px 24px rgba(0,0,0,0.07)', 
-        padding: '24px 16px',
-        '@media (max-width: 768px)': {
-          padding: '16px 12px',
-          borderRadius: 12
-        }
-      }}>
-        <div style={{ 
-          display: 'flex', 
-          flexDirection: 'column',
-          gap: 16,
-          marginBottom: 24,
-          '@media (min-width: 768px)': {
-            flexDirection: 'row',
-            justifyContent: 'space-between',
-            alignItems: 'center'
-          }
-        }}>
-          <h2 style={{ 
-            fontSize: 24, 
-            fontWeight: 800, 
-            letterSpacing: '-1px', 
-            color: '#222', 
-            margin: 0,
-            '@media (max-width: 768px)': {
-              fontSize: 20
-            }
-          }}>
+      <div className="mt-4 p-4 bg-white rounded-lg shadow">
+        <div className="flex flex-col md:flex-row justify-between items-center mb-6">
+          <h2 className="text-2xl font-bold mb-4 md:mb-0">
             Pin Dashboard
           </h2>
           <button 
             onClick={openAddModal} 
-            style={{ 
-              padding: '10px 24px', 
-              background: '#22c55e', 
-              color: '#fff', 
-              border: 'none', 
-              borderRadius: 8, 
-              fontWeight: 700, 
-              fontSize: 16, 
-              cursor: 'pointer', 
-              boxShadow: '0 2px 8px #22c55e22',
-              alignSelf: 'flex-start',
-              '@media (max-width: 768px)': {
-                fontSize: 14,
-                padding: '8px 20px'
-              }
-            }}
+            className="px-4 py-2 bg-green-500 text-white rounded-md font-semibold"
           >
             + Add Pin
           </button>
         </div>
-        <div style={{ 
-          overflowX: 'auto', 
-          WebkitOverflowScrolling: 'touch',
-          margin: '0 -16px',
-          padding: '0 16px',
-          '@media (max-width: 768px)': {
-            margin: '0 -12px',
-            padding: '0 12px'
-          }
-        }}>
-          <table style={{ 
-            width: '100%', 
-            borderCollapse: 'collapse', 
-            background: '#fff', 
-            borderRadius: 12, 
-            overflow: 'hidden', 
-            fontSize: 14,
-            minWidth: 600,
-            '@media (max-width: 768px)': {
-              fontSize: 13
-            }
-          }}>
-            <thead style={{ background: '#f3f4f6' }}>
+        <div className="overflow-x-auto">
+          <table className="w-full border-collapse bg-white rounded-lg overflow-hidden">
+            <thead className="bg-gray-50">
               <tr>
-                <th style={{ 
-                  padding: 12, 
-                  fontWeight: 700, 
-                  color: '#222', 
-                  textAlign: 'left',
-                  '@media (max-width: 768px)': {
-                    padding: '10px 8px'
-                  }
-                }}>#</th>
-                <th style={{ 
-                  padding: 12, 
-                  fontWeight: 700, 
-                  color: '#222', 
-                  textAlign: 'left',
-                  '@media (max-width: 768px)': {
-                    padding: '10px 8px'
-                  }
-                }}>Image</th>
-                <th style={{ 
-                  padding: 12, 
-                  fontWeight: 700, 
-                  color: '#222', 
-                  textAlign: 'left',
-                  '@media (max-width: 768px)': {
-                    padding: '10px 8px'
-                  }
-                }}>Title</th>
-                <th style={{ 
-                  padding: 12, 
-                  fontWeight: 700, 
-                  color: '#222', 
-                  textAlign: 'left',
-                  '@media (max-width: 768px)': {
-                    padding: '10px 8px'
-                  }
-                }}>Description</th>
-                <th style={{ 
-                  padding: 12, 
-                  fontWeight: 700, 
-                  color: '#222', 
-                  textAlign: 'left',
-                  '@media (max-width: 768px)': {
-                    padding: '10px 8px'
-                  }
-                }}>Latitude</th>
-                <th style={{ 
-                  padding: 12, 
-                  fontWeight: 700, 
-                  color: '#222', 
-                  textAlign: 'left',
-                  '@media (max-width: 768px)': {
-                    padding: '10px 8px'
-                  }
-                }}>Longitude</th>
-                <th style={{ 
-                  padding: 12, 
-                  fontWeight: 700, 
-                  color: '#222', 
-                  textAlign: 'left',
-                  '@media (max-width: 768px)': {
-                    padding: '10px 8px'
-                  }
-                }}>Actions</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                  #
+                </th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                  Image
+                </th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                  Title
+                </th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                  Description
+                </th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                  Latitude
+                </th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                  Longitude
+                </th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                  Actions
+                </th>
               </tr>
             </thead>
-            <tbody>
+            <tbody className="bg-white">
               {pins.map((pin, idx) => (
-                <tr key={pin.id} style={{ 
-                  background: idx % 2 === 0 ? '#fafbfc' : '#fff', 
-                  borderBottom: '1px solid #e5e7eb'
-                }}>
-                  <td style={{ 
-                    padding: 12, 
-                    fontWeight: 600,
-                    '@media (max-width: 768px)': {
-                      padding: '10px 8px'
-                    }
-                  }}>{pin.id}</td>
-                  <td style={{ 
-                    padding: 12,
-                    '@media (max-width: 768px)': {
-                      padding: '10px 8px'
-                    }
-                  }}>
+                <tr key={pin.id} className={idx % 2 === 0 ? 'bg-gray-50' : ''}>
+                  <td className="px-4 py-4 text-sm font-medium text-gray-900">
+                    {pin.id}
+                  </td>
+                  <td className="px-4 py-4 text-sm text-gray-500">
                     <img 
                       src={pin.image} 
                       alt={pin.title} 
-                      style={{ 
-                        width: 56, 
-                        height: 36, 
-                        objectFit: 'cover', 
-                        borderRadius: 6, 
-                        boxShadow: '0 1px 4px rgba(0,0,0,0.07)',
-                        '@media (max-width: 768px)': {
-                          width: 48,
-                          height: 32
-                        }
-                      }} 
+                      className="w-16 h-12 object-cover rounded"
                     />
                   </td>
-                  <td style={{ 
-                    padding: 12, 
-                    fontWeight: 600,
-                    '@media (max-width: 768px)': {
-                      padding: '10px 8px'
-                    }
-                  }}>{pin.title}</td>
-                  <td style={{ 
-                    padding: 12, 
-                    maxWidth: 220, 
-                    overflow: 'hidden', 
-                    textOverflow: 'ellipsis', 
-                    whiteSpace: 'nowrap', 
-                    color: '#444',
-                    '@media (max-width: 768px)': {
-                      padding: '10px 8px',
-                      maxWidth: 160
-                    }
-                  }}>{pin.description}</td>
-                  <td style={{ 
-                    padding: 12, 
-                    color: '#666',
-                    '@media (max-width: 768px)': {
-                      padding: '10px 8px'
-                    }
-                  }}>{pin.coordinates[1]}</td>
-                  <td style={{ 
-                    padding: 12, 
-                    color: '#666',
-                    '@media (max-width: 768px)': {
-                      padding: '10px 8px'
-                    }
-                  }}>{pin.coordinates[0]}</td>
-                  <td style={{ 
-                    padding: 12,
-                    '@media (max-width: 768px)': {
-                      padding: '10px 8px'
-                    }
-                  }}>
-                    <div style={{ 
-                      display: 'flex', 
-                      gap: 8, 
-                      flexWrap: 'nowrap',
-                      justifyContent: 'flex-start',
-                      alignItems: 'center',
-                      '@media (max-width: 768px)': {
-                        gap: 6
-                      }
-                    }}>
+                  <td className="px-4 py-4 text-sm font-medium text-gray-900">
+                    {pin.title}
+                  </td>
+                  <td className="px-4 py-4 text-sm text-gray-500">
+                    {pin.description}
+                  </td>
+                  <td className="px-4 py-4 text-sm text-gray-500">
+                    {pin.coordinates[1]}
+                  </td>
+                  <td className="px-4 py-4 text-sm text-gray-500">
+                    {pin.coordinates[0]}
+                  </td>
+                  <td className="px-4 py-4 text-sm text-gray-500">
+                    <div className="flex gap-2">
                       <button 
                         onClick={() => openEditModal(pin)} 
-                        style={{ 
-                          background: '#2563eb', 
-                          color: '#fff', 
-                          border: 'none', 
-                          borderRadius: 6, 
-                          padding: '6px 12px', 
-                          fontWeight: 600, 
-                          fontSize: 14, 
-                          cursor: 'pointer', 
-                          transition: 'background 0.2s',
-                          whiteSpace: 'nowrap',
-                          minWidth: '60px',
-                          '@media (max-width: 768px)': {
-                            fontSize: 13,
-                            padding: '5px 10px',
-                            minWidth: '50px'
-                          }
-                        }}
+                        className="text-blue-500 hover:text-blue-700"
                       >
                         Edit
                       </button>
                       <button 
                         onClick={() => handleDelete(pin.id)} 
-                        style={{ 
-                          background: '#dc2626', 
-                          color: '#fff', 
-                          border: 'none', 
-                          borderRadius: 6, 
-                          padding: '6px 12px', 
-                          fontWeight: 600, 
-                          fontSize: 14, 
-                          cursor: 'pointer', 
-                          transition: 'background 0.2s',
-                          whiteSpace: 'nowrap',
-                          minWidth: '60px',
-                          '@media (max-width: 768px)': {
-                            fontSize: 13,
-                            padding: '5px 10px',
-                            minWidth: '50px'
-                          }
-                        }}
+                        className="text-red-500 hover:text-red-700"
                       >
                         Delete
                       </button>
@@ -474,129 +286,33 @@ function Dashboard({ pins, setPins }) {
           onClick={e => {
             if (e.target === modalRef.current) closeModal();
           }}
-          style={{ 
-            position: 'fixed', 
-            top: 0, 
-            left: 0, 
-            width: '100vw', 
-            height: '100vh', 
-            background: 'rgba(0,0,0,0.25)', 
-            zIndex: 1000, 
-            display: 'flex', 
-            alignItems: 'center', 
-            justifyContent: 'center',
-            padding: '16px',
-            '@media (max-width: 768px)': {
-              padding: '12px'
-            }
-          }}
+          className="fixed top-0 left-0 w-full h-full bg-black bg-opacity-50 flex items-center justify-center"
         >
           <div
-            style={{ 
-              background: '#fff', 
-              borderRadius: 16, 
-              boxShadow: '0 8px 32px rgba(0,0,0,0.15)', 
-              padding: 0, 
-              width: '100%',
-              maxWidth: 480,
-              position: 'relative', 
-              maxHeight: '90vh', 
-              display: 'flex', 
-              flexDirection: 'column',
-              '@media (max-width: 768px)': {
-                borderRadius: 12,
-                maxHeight: '95vh'
-              }
-            }}
+            className="bg-white rounded-lg shadow p-0 w-full max-w-4xl relative max-h-90vh"
             onClick={e => e.stopPropagation()}
           >
             {/* Close button */}
             <button 
               type="button" 
               onClick={closeModal} 
-              style={{ 
-                position: 'absolute', 
-                top: 16, 
-                right: 16, 
-                background: 'none', 
-                border: 'none', 
-                fontSize: 24, 
-                color: '#888', 
-                cursor: 'pointer', 
-                zIndex: 2, 
-                fontWeight: 700, 
-                lineHeight: 1,
-                padding: 8,
-                '@media (max-width: 768px)': {
-                  top: 12,
-                  right: 12,
-                  fontSize: 22
-                }
-              }} 
-              aria-label="Close"
+              className="absolute top-4 right-4 bg-none border-none text-gray-500 cursor-pointer z-20 font-semibold"
             >
               ×
             </button>
-            <div style={{ 
-              padding: '24px 16px', 
-              overflowY: 'auto',
-              '@media (max-width: 768px)': {
-                padding: '20px 12px'
-              }
-            }}>
-              <h3 style={{ 
-                fontSize: 20, 
-                fontWeight: 700, 
-                marginBottom: 16, 
-                paddingRight: 32,
-                '@media (max-width: 768px)': {
-                  fontSize: 18,
-                  marginBottom: 12
-                }
-              }}>
+            <div className="p-8 overflow-y-auto">
+              <h3 className="text-xl font-semibold mb-4">
                 {editingId ? 'Edit Pin' : 'Add Pin'}
               </h3>
-              <form onSubmit={handleSubmit} style={{ 
-                display: 'flex', 
-                flexDirection: 'column', 
-                gap: 16,
-                '@media (max-width: 768px)': {
-                  gap: 12
-                }
-              }}>
+              <form onSubmit={handleSubmit} className="flex flex-col gap-4">
                 {/* Main Info */}
                 <div>
-                  <div style={{ 
-                    fontWeight: 600, 
-                    color: '#2563eb', 
-                    marginBottom: 8, 
-                    fontSize: 14,
-                    '@media (max-width: 768px)': {
-                      fontSize: 13,
-                      marginBottom: 6
-                    }
-                  }}>
+                  <div className="font-semibold text-blue-500 mb-2">
                     Main Info
                   </div>
-                  <div style={{ 
-                    display: 'flex', 
-                    flexDirection: 'column', 
-                    gap: 12,
-                    '@media (max-width: 768px)': {
-                      gap: 10
-                    }
-                  }}>
+                  <div className="flex flex-col gap-4">
                     <div>
-                      <label style={{ 
-                        display: 'block', 
-                        fontWeight: 600, 
-                        marginBottom: 4, 
-                        fontSize: 14,
-                        '@media (max-width: 768px)': {
-                          fontSize: 13,
-                          marginBottom: 3
-                        }
-                      }}>
+                      <label className="block font-semibold mb-2">
                         Title
                       </label>
                       <input 
@@ -605,206 +321,109 @@ function Dashboard({ pins, setPins }) {
                         onChange={handleChange} 
                         placeholder="Title" 
                         required 
-                        style={{ 
-                          width: '100%',
-                          padding: '8px 12px', 
-                          borderRadius: 6, 
-                          border: '1px solid #e5e7eb',
-                          fontSize: 14,
-                          '@media (max-width: 768px)': {
-                            fontSize: 13,
-                            padding: '7px 10px'
-                          }
-                        }} 
+                        className="w-full p-2 border rounded"
                       />
                     </div>
                     <div>
-                      <label style={{ display: 'block', fontWeight: 600, marginBottom: 4, fontSize: 14 }}>Image URL</label>
+                      <label className="block font-semibold mb-2">Image URL</label>
                       <input 
                         name="image" 
                         value={form.image} 
                         onChange={handleChange} 
                         placeholder="Image URL" 
                         required 
-                        style={{ 
-                          width: '100%',
-                          padding: '8px 12px', 
-                          borderRadius: 6, 
-                          border: '1px solid #e5e7eb',
-                          fontSize: 14
-                        }} 
+                        className="w-full p-2 border rounded"
                       />
                     </div>
                     <div>
-                      <label style={{ display: 'block', fontWeight: 600, marginBottom: 4, fontSize: 14 }}>Description</label>
+                      <label className="block font-semibold mb-2">Description</label>
                       <input 
                         name="description" 
                         value={form.description} 
                         onChange={handleChange} 
                         placeholder="Description" 
-                        style={{ 
-                          width: '100%',
-                          padding: '8px 12px', 
-                          borderRadius: 6, 
-                          border: '1px solid #e5e7eb',
-                          fontSize: 14
-                        }} 
+                        className="w-full p-2 border rounded"
                       />
                     </div>
                   </div>
                 </div>
-                <div style={{ 
-                  borderTop: '1px solid #e5e7eb', 
-                  margin: '0 -16px', 
-                  height: 0,
-                  '@media (max-width: 768px)': {
-                    margin: '0 -12px'
-                  }
-                }} />
+                <div className="border-t border-gray-200 mt-4"></div>
                 {/* Coordinates */}
                 <div>
-                  <div style={{ fontWeight: 600, color: '#22c55e', marginBottom: 8, fontSize: 14 }}>Coordinates</div>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                  <div className="font-semibold text-green-500 mb-2">Coordinates</div>
+                  <div className="flex flex-col gap-4">
                     <div>
-                      <label style={{ display: 'block', fontWeight: 600, marginBottom: 4, fontSize: 14 }}>Latitude</label>
+                      <label className="block font-semibold mb-2">Latitude</label>
                       <input 
                         name="latitude" 
                         value={form.latitude} 
                         onChange={handleChange} 
                         placeholder="Latitude" 
                         required 
-                        style={{ 
-                          width: '100%',
-                          padding: '8px 12px', 
-                          borderRadius: 6, 
-                          border: '1px solid #e5e7eb',
-                          fontSize: 14
-                        }} 
+                        className="w-full p-2 border rounded"
                       />
                     </div>
                     <div>
-                      <label style={{ display: 'block', fontWeight: 600, marginBottom: 4, fontSize: 14 }}>Longitude</label>
+                      <label className="block font-semibold mb-2">Longitude</label>
                       <input 
                         name="longitude" 
                         value={form.longitude} 
                         onChange={handleChange} 
                         placeholder="Longitude" 
                         required 
-                        style={{ 
-                          width: '100%',
-                          padding: '8px 12px', 
-                          borderRadius: 6, 
-                          border: '1px solid #e5e7eb',
-                          fontSize: 14
-                        }} 
+                        className="w-full p-2 border rounded"
                       />
                     </div>
                   </div>
                 </div>
-                <div style={{ borderTop: '1px solid #e5e7eb', margin: '0 -16px', height: 0 }} />
+                <div className="border-t border-gray-200 mt-4"></div>
                 {/* Links */}
                 <div>
-                  <div style={{ fontWeight: 600, color: '#dc2626', marginBottom: 8, fontSize: 14 }}>Links</div>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                  <div className="font-semibold text-red-500 mb-2">Links</div>
+                  <div className="flex flex-col gap-4">
                     <div>
-                      <label style={{ display: 'block', fontWeight: 600, marginBottom: 4, fontSize: 14 }}>Book Now URL</label>
+                      <label className="block font-semibold mb-2">Book Now URL</label>
                       <input 
                         name="bookurl" 
                         value={form.bookurl} 
                         onChange={handleChange} 
                         placeholder="Book Now URL" 
-                        style={{ 
-                          width: '100%',
-                          padding: '8px 12px', 
-                          borderRadius: 6, 
-                          border: '1px solid #e5e7eb',
-                          fontSize: 14
-                        }} 
+                        className="w-full p-2 border rounded"
                       />
                     </div>
                     <div>
-                      <label style={{ display: 'block', fontWeight: 600, marginBottom: 4, fontSize: 14 }}>Direction URL</label>
+                      <label className="block font-semibold mb-2">Direction URL</label>
                       <input 
                         name="direction" 
                         value={form.direction} 
                         onChange={handleChange} 
                         placeholder="Direction URL" 
-                        style={{ 
-                          width: '100%',
-                          padding: '8px 12px', 
-                          borderRadius: 6, 
-                          border: '1px solid #e5e7eb',
-                          fontSize: 14
-                        }} 
+                        className="w-full p-2 border rounded"
                       />
                     </div>
                     <div>
-                      <label style={{ display: 'block', fontWeight: 600, marginBottom: 4, fontSize: 14 }}>Learn More URL</label>
+                      <label className="block font-semibold mb-2">Learn More URL</label>
                       <input 
                         name="learnmore" 
                         value={form.learnmore} 
                         onChange={handleChange} 
                         placeholder="Learn More URL" 
-                        style={{ 
-                          width: '100%',
-                          padding: '8px 12px', 
-                          borderRadius: 6, 
-                          border: '1px solid #e5e7eb',
-                          fontSize: 14
-                        }} 
+                        className="w-full p-2 border rounded"
                       />
                     </div>
                   </div>
                 </div>
-                <div style={{ 
-                  display: 'flex', 
-                  gap: 8, 
-                  marginTop: 8, 
-                  justifyContent: 'flex-end',
-                  '@media (max-width: 768px)': {
-                    gap: 6,
-                    marginTop: 6
-                  }
-                }}>
+                <div className="flex gap-4 mt-4 justify-end">
                   <button 
                     type="submit" 
-                    style={{ 
-                      padding: '10px 20px', 
-                      background: editingId ? '#2563eb' : '#22c55e', 
-                      color: '#fff', 
-                      border: 'none', 
-                      borderRadius: 6, 
-                      fontWeight: 600, 
-                      fontSize: 14, 
-                      cursor: 'pointer', 
-                      transition: 'background 0.2s',
-                      whiteSpace: 'nowrap',
-                      '@media (max-width: 768px)': {
-                        fontSize: 13,
-                        padding: '8px 16px'
-                      }
-                    }}
+                    className="px-4 py-2 bg-blue-500 text-white rounded font-semibold"
                   >
                     {editingId ? 'Update' : 'Add'}
                   </button>
                   <button 
                     type="button" 
                     onClick={closeModal} 
-                    style={{ 
-                      padding: '10px 20px', 
-                      background: '#e5e7eb', 
-                      color: '#222', 
-                      border: 'none', 
-                      borderRadius: 6, 
-                      fontWeight: 600, 
-                      fontSize: 14, 
-                      cursor: 'pointer',
-                      whiteSpace: 'nowrap',
-                      '@media (max-width: 768px)': {
-                        fontSize: 13,
-                        padding: '8px 16px'
-                      }
-                    }}
+                    className="px-4 py-2 bg-gray-200 text-gray-700 rounded font-semibold"
                   >
                     Cancel
                   </button>

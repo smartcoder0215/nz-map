@@ -10,9 +10,9 @@ console.log('Token available:', !!MAPBOX_TOKEN);
 console.log('Token length:', MAPBOX_TOKEN?.length);
 console.log('Token prefix:', MAPBOX_TOKEN?.substring(0, 10));
 
-mapboxgl.accessToken = MAPBOX_TOKEN;
+const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
 
-const Map = ({ pins }) => {
+const Map = ({ pins, setPins }) => {
   const mapContainer = useRef(null);
   const map = useRef(null);
   const [error, setError] = useState(null);
@@ -22,34 +22,29 @@ const Map = ({ pins }) => {
   const infoWindowRef = useRef(null);
   const [infoWindowHeight, setInfoWindowHeight] = useState(0);
   const [bannerLoaded, setBannerLoaded] = useState(false);
+  const [activeOverlay, setActiveOverlay] = useState(null);
 
-  // Function to add image overlay
-  const addImageOverlay = (imageUrl, bounds) => {
-    if (!map.current) return;
-
-    // Add the image source
-    map.current.addSource('overlay-image', {
-      type: 'image',
-      url: imageUrl,
-      coordinates: bounds
-    });
-
-    // Add the image layer
-    map.current.addLayer({
-      id: 'overlay-layer',
-      type: 'raster',
-      source: 'overlay-image',
-      paint: {
-        'raster-opacity': 0.75
+  // Fetch active overlay image
+  useEffect(() => {
+    const fetchActiveOverlay = async () => {
+      try {
+        console.log('Fetching overlay images...');
+        const response = await fetch(`${API_URL}/api/overlay-images`);
+        if (!response.ok) throw new Error('Failed to fetch overlay images');
+        const images = await response.json();
+        console.log('Fetched images:', images);
+        const active = images.find(img => img.isActive);
+        console.log('Active overlay:', active);
+        if (active) {
+          setActiveOverlay(active);
+        }
+      } catch (error) {
+        console.error('Error fetching overlay:', error);
       }
-    });
-  };
+    };
 
-  // Example usage of addImageOverlay:
-  // addImageOverlay('path/to/your/image.jpg', [
-  //   [172.5, -41.5], // Southwest coordinates
-  //   [174.5, -40.5]  // Northeast coordinates
-  // ]);
+    fetchActiveOverlay();
+  }, []);
 
   // Cleanup function to remove map and markers
   const cleanupMap = () => {
@@ -74,19 +69,24 @@ const Map = ({ pins }) => {
       return;
     }
 
-    // Blank style
+    if (map.current) return;
+
+    console.log('Initializing map...');
+    mapboxgl.accessToken = MAPBOX_TOKEN;
+
+    // Create a blank style
     const blankStyle = {
       version: 8,
       sources: {},
-      layers: [],
+      layers: []
     };
 
     try {
       map.current = new mapboxgl.Map({
         container: mapContainer.current,
         style: blankStyle,
-        center: [172.5, -41.5],
-        zoom: 5.5,
+        center: [174.7762, -41.2866], // Wellington coordinates
+        zoom: 5,
         minZoom: 3,
         maxZoom: 15,
         attributionControl: true,
@@ -95,87 +95,97 @@ const Map = ({ pins }) => {
       });
 
       map.current.on('load', () => {
-        // Add NZ map overlay as the only layer
-        try {
-          map.current.addSource('nz-overlay', {
-            type: 'image',
-            url: '/nz.png',
-            coordinates: [
-              [161.5, -31.0],
-              [183.0, -31.0],
-              [181.5, -49.5],
-              [161.0, -50.0]
-            ]
-          });
+        console.log('Map loaded, active overlay:', activeOverlay);
+        // Add overlay image if active
+        if (activeOverlay) {
+          console.log('Adding overlay source:', activeOverlay.url);
+          try {
+            map.current.addSource('overlay', {
+              type: 'image',
+              url: activeOverlay.url,
+              coordinates: [
+                [166.0, -34.0], // Southwest coordinates
+                [178.0, -34.0], // Southeast coordinates
+                [178.0, -47.0], // Northeast coordinates
+                [166.0, -47.0]  // Northwest coordinates
+              ]
+            });
 
-          map.current.addLayer({
-            id: 'nz-overlay-layer',
-            type: 'raster',
-            source: 'nz-overlay',
-            paint: {
-              'raster-opacity': 1
-            }
-          });
-
-          // Disable map rotation
-          map.current.dragRotate.disable();
-          map.current.touchZoomRotate.disableRotation();
-
-          // Set initial view to match overlay exactly
-          map.current.fitBounds(
-            [
-              [161.0, -52.0],
-              [181.0, -30.0]
-            ],
-            {
-              padding: 0,
-              maxZoom: 5.5
-            }
-          );
-
-          // Add pins as markers (after overlay is loaded)
-          markerRefs.current = {};
-          pins.forEach((pin, index) => {
-            const el = document.createElement('div');
-            el.className = 'custom-marker';
-            el.style.background = selectedPin === pin.id ? '#dc2626' : '#1abc9c';
-            el.style.width = '32px';
-            el.style.height = '32px';
-            el.style.borderRadius = '50%';
-            el.style.display = 'flex';
-            el.style.alignItems = 'center';
-            el.style.justifyContent = 'center';
-            el.style.color = 'white';
-            el.style.fontWeight = 'bold';
-            el.innerText = (index + 1).toString();
-            el.style.cursor = 'pointer';
-            
-            const marker = new mapboxgl.Marker(el)
-              .setLngLat(pin.coordinates)
-              .addTo(map.current);
-
-            // Add click handler directly to the marker
-            marker.getElement().addEventListener('click', () => {
-              // Center map on the clicked pin
-              map.current.easeTo({
-                center: pin.coordinates,
-                zoom: 6,
-                duration: 1000
-              });
-              
-              setSelectedPin(pin.id);
-              const infoEl = document.getElementById(`infowindow-${pin.id}`);
-              if (infoEl) {
-                infoEl.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+            console.log('Adding overlay layer');
+            map.current.addLayer({
+              id: 'overlay-layer',
+              type: 'raster',
+              source: 'overlay',
+              paint: {
+                'raster-opacity': 1
               }
             });
 
-            markerRefs.current[pin.id] = { marker, el };
+            // Disable map rotation
+            map.current.dragRotate.disable();
+            map.current.touchZoomRotate.disableRotation();
+
+            // Fit bounds to show the entire overlay
+            map.current.fitBounds(
+              [
+                [166.0, -47.0], // Southwest
+                [178.0, -34.0]  // Northeast
+              ],
+              {
+                padding: 50,
+                maxZoom: 7
+              }
+            );
+            console.log('Overlay added successfully');
+          } catch (error) {
+            console.error('Error adding overlay:', error);
+          }
+        }
+
+        // Add pins as markers
+        markerRefs.current = {};
+        pins.forEach((pin, index) => {
+          const el = document.createElement('div');
+          el.className = 'custom-marker';
+          el.style.background = selectedPin === pin.id ? '#dc2626' : '#1abc9c';
+          el.style.width = '32px';
+          el.style.height = '32px';
+          el.style.borderRadius = '50%';
+          el.style.display = 'flex';
+          el.style.alignItems = 'center';
+          el.style.justifyContent = 'center';
+          el.style.color = 'white';
+          el.style.fontWeight = 'bold';
+          el.innerText = (index + 1).toString();
+          el.style.cursor = 'pointer';
+          
+          const marker = new mapboxgl.Marker(el)
+            .setLngLat(pin.coordinates)
+            .addTo(map.current);
+
+          // Add click handler directly to the marker
+          marker.getElement().addEventListener('click', () => {
+            // Center map on the clicked pin
+            map.current.easeTo({
+              center: pin.coordinates,
+              zoom: 6,
+              duration: 1000
+            });
+            
+            setSelectedPin(pin.id);
+            const infoEl = document.getElementById(`infowindow-${pin.id}`);
+            if (infoEl) {
+              infoEl.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+            }
           });
 
-        } catch (error) {
-          console.error('Error adding NZ overlay:', error);
-        }
+          markerRefs.current[pin.id] = { marker, el };
+        });
+      });
+
+      // Add error handler
+      map.current.on('error', (e) => {
+        console.error('Mapbox error:', e);
       });
 
       // Cleanup on unmount
@@ -186,7 +196,7 @@ const Map = ({ pins }) => {
       console.error('Error initializing map:', err);
       setError(err.message);
     }
-  }, [pins]);
+  }, [pins, activeOverlay]);
 
   // Update marker color when selectedPin changes
   useEffect(() => {
@@ -297,6 +307,43 @@ const Map = ({ pins }) => {
     document.addEventListener('mousedown', handleClick);
     return () => document.removeEventListener('mousedown', handleClick);
   }, [selectedPin]);
+
+  useEffect(() => {
+    if (!map.current) return;
+
+    // Remove existing markers
+    const markers = document.getElementsByClassName('marker');
+    while (markers[0]) {
+      markers[0].remove();
+    }
+
+    // Add new markers
+    pins.forEach(pin => {
+      const el = document.createElement('div');
+      el.className = 'marker';
+      el.style.width = '32px';
+      el.style.height = '32px';
+      el.style.backgroundImage = `url(${pin.image})`;
+      el.style.backgroundSize = 'cover';
+      el.style.borderRadius = '50%';
+      el.style.border = '2px solid white';
+      el.style.cursor = 'pointer';
+
+      new mapboxgl.Marker(el)
+        .setLngLat(pin.coordinates)
+        .setPopup(
+          new mapboxgl.Popup({ offset: 25 })
+            .setHTML(`
+              <h3>${pin.title}</h3>
+              <p>${pin.description}</p>
+              ${pin.bookurl ? `<a href="${pin.bookurl}" target="_blank">Book Now</a>` : ''}
+              ${pin.direction ? `<a href="${pin.direction}" target="_blank">Get Directions</a>` : ''}
+              ${pin.website ? `<a href="${pin.website}" target="_blank">Learn More</a>` : ''}
+            `)
+        )
+        .addTo(map.current);
+    });
+  }, [pins]);
 
   if (error) {
     return (
