@@ -21,6 +21,7 @@ const Map = ({ pins }) => {
   const [infoWindowPosition, setInfoWindowPosition] = useState({ x: 0, y: 0 });
   const infoWindowRef = useRef(null);
   const [infoWindowHeight, setInfoWindowHeight] = useState(0);
+  const [bannerLoaded, setBannerLoaded] = useState(false);
 
   // Function to add image overlay
   const addImageOverlay = (imageUrl, bounds) => {
@@ -322,6 +323,27 @@ const Map = ({ pins }) => {
 
   return (
     <div style={{ width: '100%', height: '100vh', position: 'relative' }}>
+      {/* Top-center banner image with fade-in */}
+      <img
+        src="/banner.png" // Replace with your actual banner image path
+        alt="Banner"
+        onLoad={() => setBannerLoaded(true)}
+        style={{
+          position: 'absolute',
+          // top: 24,
+          left: '50%',
+          transform: 'translateX(-50%)',
+          zIndex: 20,
+          width: 560,
+          maxWidth: '90vw',
+          pointerEvents: 'none',
+          opacity: bannerLoaded ? 1 : 0,
+          transition: 'opacity 1s ease',
+          borderRadius: '20px',
+          border: '1.5px solid rgba(255,255,255,0.10)',
+          boxShadow: '0 12px 48px 0 rgba(0,0,0,0.35)'
+        }}
+      />
       <div ref={mapContainer} style={{ 
         width: '100%', 
         height: '100%', 
@@ -345,7 +367,7 @@ const Map = ({ pins }) => {
             border: '2.5px solid #FFD700', // gold
             background: '#181A1B', // dark background
             boxShadow: '0 4px 24px rgba(0,0,0,0.45)',
-            zIndex: 10,
+            zIndex: 30,
             pointerEvents: 'auto',
             paddingBottom: 16, // space for arrow
           }}
