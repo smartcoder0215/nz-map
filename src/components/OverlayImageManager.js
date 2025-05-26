@@ -15,19 +15,41 @@ function OverlayImageManager({ onOverlaySelect }) {
 
   const fetchImages = async () => {
     try {
+      console.log('Fetching overlay images from:', `${API_URL}/api/overlay-images`);
+      setLoading(true);
       const response = await fetch(`${API_URL}/api/overlay-images`);
-      if (!response.ok) throw new Error('Failed to fetch images');
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
       const data = await response.json();
+      console.log('Fetched images:', data);
       setImages(data);
-    } catch (err) {
-      setError(err.message);
+    } catch (error) {
+      console.error('Error fetching images:', error);
+      setError(error.message);
     } finally {
       setLoading(false);
     }
   };
 
   const handleFileChange = (e) => {
-    setSelectedFile(e.target.files[0]);
+    const file = e.target.files[0];
+    if (file) {
+      // Validate file type
+      if (!file.type.startsWith('image/')) {
+        setError('Please select an image file');
+        e.target.value = null;
+        return;
+      }
+      // Validate file size (10MB - Cloudinary free tier limit)
+      if (file.size > 10 * 1024 * 1024) {
+        setError('File size must be less than 10MB (Cloudinary free tier limit)');
+        e.target.value = null;
+        return;
+      }
+      setSelectedFile(file);
+      setError(null);
+    }
   };
 
   const handleUpload = async (e) => {
@@ -35,39 +57,60 @@ function OverlayImageManager({ onOverlaySelect }) {
     if (!selectedFile) return;
 
     setUploading(true);
+    setError(null);
     const formData = new FormData();
     formData.append('image', selectedFile);
+    formData.append('name', selectedFile.name);
 
     try {
+      console.log('Uploading image:', selectedFile.name);
+      setLoading(true);
       const response = await fetch(`${API_URL}/api/overlay-images`, {
         method: 'POST',
         body: formData,
       });
 
-      if (!response.ok) throw new Error('Upload failed');
+      const data = await response.json();
       
+      if (!response.ok) {
+        throw new Error(data.message || data.error || 'Upload failed');
+      }
+
+      console.log('Upload successful:', data);
       await fetchImages();
       setSelectedFile(null);
-    } catch (err) {
-      setError(err.message);
+      e.target.reset();
+    } catch (error) {
+      console.error('Error uploading image:', error);
+      setError(error.message || 'Failed to upload image. Please try again.');
     } finally {
       setUploading(false);
+      setLoading(false);
     }
   };
 
   const handleActivate = async (id) => {
     try {
+      console.log('Activating image:', id);
+      setLoading(true);
       const response = await fetch(`${API_URL}/api/overlay-images/${id}/activate`, {
         method: 'PATCH',
       });
 
-      if (!response.ok) throw new Error('Failed to activate image');
-      
-      const updatedImage = await response.json();
-      onOverlaySelect(updatedImage);
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Activation failed');
+      }
+
+      const data = await response.json();
+      console.log('Activation successful:', data);
+      onOverlaySelect(data);
       await fetchImages();
-    } catch (err) {
-      setError(err.message);
+    } catch (error) {
+      console.error('Error activating image:', error);
+      setError(error.message);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -75,15 +118,24 @@ function OverlayImageManager({ onOverlaySelect }) {
     if (!window.confirm('Are you sure you want to delete this image?')) return;
 
     try {
+      console.log('Deleting image:', id);
+      setLoading(true);
       const response = await fetch(`${API_URL}/api/overlay-images/${id}`, {
         method: 'DELETE',
       });
 
-      if (!response.ok) throw new Error('Failed to delete image');
-      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Deletion failed');
+      }
+
+      console.log('Deletion successful');
       await fetchImages();
-    } catch (err) {
-      setError(err.message);
+    } catch (error) {
+      console.error('Error deleting image:', error);
+      setError(error.message);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -96,20 +148,30 @@ function OverlayImageManager({ onOverlaySelect }) {
       
       {/* Upload Form */}
       <form onSubmit={handleUpload} className="mb-6">
-        <div className="flex items-center gap-4">
-          <input
-            type="file"
-            accept="image/*"
-            onChange={handleFileChange}
-            className="flex-1 p-2 border rounded"
-          />
-          <button
-            type="submit"
-            disabled={!selectedFile || uploading}
-            className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 disabled:bg-gray-400"
-          >
-            {uploading ? 'Uploading...' : 'Upload'}
-          </button>
+        <div className="flex flex-col gap-2">
+          <div className="flex items-center gap-4">
+            <input
+              type="file"
+              accept="image/*"
+              onChange={handleFileChange}
+              className="flex-1 p-2 border rounded"
+            />
+            <button
+              type="submit"
+              disabled={!selectedFile || uploading}
+              className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 disabled:bg-gray-400"
+            >
+              {uploading ? 'Uploading...' : 'Upload'}
+            </button>
+          </div>
+          <div className="text-sm text-gray-500">
+            Maximum file size: 10MB (Cloudinary free tier limit)
+          </div>
+          {error && (
+            <div className="text-red-500 text-sm mt-2">
+              {error}
+            </div>
+          )}
         </div>
       </form>
 
@@ -132,12 +194,14 @@ function OverlayImageManager({ onOverlaySelect }) {
                       ? 'bg-green-500 text-white'
                       : 'bg-gray-200 hover:bg-gray-300'
                   }`}
+                  disabled={loading || image.isActive}
                 >
                   {image.isActive ? 'Active' : 'Activate'}
                 </button>
                 <button
                   onClick={() => handleDelete(image._id)}
                   className="px-2 py-1 text-sm bg-red-500 text-white rounded hover:bg-red-600"
+                  disabled={loading}
                 >
                   Delete
                 </button>
