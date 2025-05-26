@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import OverlayImageManager from './OverlayImageManager';
 
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
@@ -13,12 +13,17 @@ function Dashboard({ pins, setPins }) {
     bookurl: '',
     direction: '',
     learnmore: '',
+    icon: 'attraction', // Default icon
   });
   const [modalOpen, setModalOpen] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [error, setError] = useState(null);
   const modalRef = useRef();
   const [activeOverlay, setActiveOverlay] = useState(null);
+  const [uploadedIcons, setUploadedIcons] = useState([]);
+  const [iconUploadFile, setIconUploadFile] = useState(null);
+  const [iconUploading, setIconUploading] = useState(false);
+  const [iconUploadError, setIconUploadError] = useState(null);
 
   const resetForm = () => setForm({
     title: '',
@@ -29,6 +34,7 @@ function Dashboard({ pins, setPins }) {
     bookurl: '',
     direction: '',
     learnmore: '',
+    icon: 'attraction', // Default icon
   });
 
   const openAddModal = () => {
@@ -48,6 +54,7 @@ function Dashboard({ pins, setPins }) {
       bookurl: pin.google,
       direction: pin.direction,
       learnmore: pin.website,
+      icon: pin.icon || 'attraction', // Add icon to form
     });
     setEditingId(pin.id);
     setModalOpen(true);
@@ -78,7 +85,8 @@ function Dashboard({ pins, setPins }) {
       coordinates: coordinates,
       bookurl: form.bookurl,
       direction: form.direction,
-      learnmore: form.learnmore
+      learnmore: form.learnmore,
+      icon: form.icon // Add icon to pin data
     };
 
     try {
@@ -105,7 +113,8 @@ function Dashboard({ pins, setPins }) {
           description: updatedPin.description,
           google: updatedPin.bookurl,
           direction: updatedPin.direction,
-          website: updatedPin.learnmore
+          website: updatedPin.learnmore,
+          icon: updatedPin.icon // Add icon to pin object
         } : p));
     } else {
         // Create new pin
@@ -130,7 +139,8 @@ function Dashboard({ pins, setPins }) {
           description: newPin.description,
           google: newPin.bookurl,
           direction: newPin.direction,
-          website: newPin.learnmore
+          website: newPin.learnmore,
+          icon: newPin.icon // Add icon to pin object
         }]);
     }
     closeModal();
@@ -162,6 +172,59 @@ function Dashboard({ pins, setPins }) {
 
   const handleOverlaySelect = (overlay) => {
     setActiveOverlay(overlay);
+  };
+
+  useEffect(() => {
+    fetchUploadedIcons();
+  }, []);
+
+  const fetchUploadedIcons = async () => {
+    try {
+      const res = await fetch(`${API_URL}/api/pin-icons`);
+      const data = await res.json();
+      setUploadedIcons(data);
+    } catch (err) {
+      setUploadedIcons([]);
+    }
+  };
+
+  const handleIconFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      if (!file.type.startsWith('image/')) {
+        setIconUploadError('Please select an image file');
+        return;
+      }
+      if (file.size > 10 * 1024 * 1024) {
+        setIconUploadError('File size must be less than 10MB');
+        return;
+      }
+      setIconUploadFile(file);
+      setIconUploadError(null);
+    }
+  };
+
+  const handleIconUpload = async () => {
+    if (!iconUploadFile) return;
+    setIconUploading(true);
+    setIconUploadError(null);
+    const formData = new FormData();
+    formData.append('image', iconUploadFile);
+    formData.append('name', iconUploadFile.name);
+    try {
+      const res = await fetch(`${API_URL}/api/pin-icons`, {
+        method: 'POST',
+        body: formData,
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || 'Upload failed');
+      setIconUploadFile(null);
+      await fetchUploadedIcons();
+    } catch (err) {
+      setIconUploadError(err.message || 'Failed to upload icon');
+    } finally {
+      setIconUploading(false);
+    }
   };
 
   return (
@@ -217,6 +280,7 @@ function Dashboard({ pins, setPins }) {
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Icon</th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Title</th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Location</th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
@@ -225,6 +289,14 @@ function Dashboard({ pins, setPins }) {
               <tbody className="bg-white divide-y divide-gray-200">
                 {pins.map(pin => (
                   <tr key={pin.id} className="hover:bg-gray-50">
+                    <td className="px-4 py-3 whitespace-nowrap">
+                      <img
+                        src={pin.icon || (uploadedIcons[0] && uploadedIcons[0].url) || ''}
+                        alt="Pin Icon"
+                        className="w-8 h-8"
+                        onError={e => { e.target.onerror = null; e.target.src = uploadedIcons[0] ? uploadedIcons[0].url : ''; }}
+                      />
+                    </td>
                     <td className="px-4 py-3 whitespace-nowrap">
                       <div className="flex items-center">
                         <div className="h-10 w-10 flex-shrink-0">
@@ -387,6 +459,45 @@ function Dashboard({ pins, setPins }) {
                       />
                     </div>
                   </div>
+                </div>
+
+                {/* Icon Selection */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Pin Icon</label>
+                  <div className="grid grid-cols-4 gap-4 mb-2">
+                    {uploadedIcons.map((icon) => (
+                      <div
+                        key={icon._id}
+                        className={`cursor-pointer p-2 rounded-lg border-2 ${form.icon === icon.url ? 'border-blue-500 bg-blue-50' : 'border-gray-200'}`}
+                        onClick={() => setForm(f => ({ ...f, icon: icon.url }))}
+                      >
+                        <img
+                          src={icon.url}
+                          alt={icon.name}
+                          className="w-8 h-8 mx-auto"
+                        />
+                        <p className="text-xs text-center mt-1">{icon.name}</p>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="flex items-center gap-2 mb-2">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleIconFileChange}
+                      className="p-1 border rounded text-xs"
+                    />
+                    <button
+                      type="button"
+                      onClick={handleIconUpload}
+                      disabled={!iconUploadFile || iconUploading}
+                      className="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 disabled:bg-gray-400 text-xs"
+                    >
+                      {iconUploading ? 'Uploading...' : 'Upload Pin Icon'}
+                    </button>
+                  </div>
+                  {iconUploadError && <div className="text-red-500 text-xs mb-2">{iconUploadError}</div>}
+                  <div className="text-xs text-gray-500">Max size: 10MB. Uploaded icons will appear above.</div>
                 </div>
 
                 {/* Action Buttons */}

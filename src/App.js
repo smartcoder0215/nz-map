@@ -42,7 +42,8 @@ function App() {
           description: pin.description,
           google: pin.bookurl,
           direction: pin.direction,
-          website: pin.learnmore
+          website: pin.learnmore,
+          icon: pin.icon
         }));
         setPins(transformedPins);
       } catch (err) {

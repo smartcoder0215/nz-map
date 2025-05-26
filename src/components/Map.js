@@ -12,6 +12,17 @@ console.log('Token prefix:', MAPBOX_TOKEN?.substring(0, 10));
 
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
 
+// Pin icons configuration
+const PIN_ICONS = {
+  attraction: '/pin-icons/attraction.png',
+  activity: '/pin-icons/activity.png',
+  culture: '/pin-icons/culture.png',
+  hotel: '/pin-icons/hotel.png',
+  nature: '/pin-icons/nature.png',
+  restaurant: '/pin-icons/restaurant.png',
+  shopping: '/pin-icons/shopping.png',
+};
+
 const Map = ({ pins, setPins }) => {
   const mapContainer = useRef(null);
   const map = useRef(null);
@@ -23,6 +34,21 @@ const Map = ({ pins, setPins }) => {
   const [infoWindowHeight, setInfoWindowHeight] = useState(0);
   const [bannerLoaded, setBannerLoaded] = useState(false);
   const [activeOverlay, setActiveOverlay] = useState(null);
+  const [uploadedIcons, setUploadedIcons] = useState([]);
+
+  // Fetch uploaded pin icons
+  useEffect(() => {
+    const fetchIcons = async () => {
+      try {
+        const res = await fetch(`${API_URL}/api/pin-icons`);
+        const data = await res.json();
+        setUploadedIcons(data);
+      } catch (err) {
+        setUploadedIcons([]);
+      }
+    };
+    fetchIcons();
+  }, []);
 
   // Fetch active overlay image
   useEffect(() => {
@@ -69,7 +95,7 @@ const Map = ({ pins, setPins }) => {
       return;
     }
 
-    if (map.current) return;
+    cleanupMap();
 
     console.log('Initializing map...');
     mapboxgl.accessToken = MAPBOX_TOKEN;
@@ -147,31 +173,38 @@ const Map = ({ pins, setPins }) => {
         pins.forEach((pin, index) => {
           const el = document.createElement('div');
           el.className = 'custom-marker';
-          el.style.background = selectedPin === pin.id ? '#dc2626' : '#1abc9c';
-          el.style.width = '32px';
-          el.style.height = '32px';
-          el.style.borderRadius = '50%';
+          el.style.position = 'relative';
+          el.style.width = '36px';
+          el.style.height = '44px'; // allow for pin tip
           el.style.display = 'flex';
-          el.style.alignItems = 'center';
+          el.style.alignItems = 'flex-end';
           el.style.justifyContent = 'center';
-          el.style.color = 'white';
-          el.style.fontWeight = 'bold';
-          el.innerText = (index + 1).toString();
-          el.style.cursor = 'pointer';
-          
-          const marker = new mapboxgl.Marker(el)
+
+          // Create image element for the pin icon
+          const img = document.createElement('img');
+          const fallbackIcon = uploadedIcons[0] ? uploadedIcons[0].url : '';
+          const isValidUrl = typeof pin.icon === 'string' && pin.icon.startsWith('http');
+          console.log('Pin:', pin.title, 'icon:', pin.icon, 'isValidUrl:', isValidUrl, 'fallback:', fallbackIcon);
+          img.src = isValidUrl ? pin.icon : fallbackIcon;
+          img.style.width = '36px';
+          img.style.height = '44px';
+          img.style.objectFit = 'contain';
+          img.style.display = 'block';
+          img.onerror = () => { img.src = fallbackIcon; };
+
+          el.appendChild(img);
+
+          const marker = new mapboxgl.Marker(el, { anchor: 'bottom' })
             .setLngLat(pin.coordinates)
             .addTo(map.current);
 
           // Add click handler directly to the marker
           marker.getElement().addEventListener('click', () => {
-            // Center map on the clicked pin
             map.current.easeTo({
               center: pin.coordinates,
               zoom: 6,
               duration: 1000
             });
-            
             setSelectedPin(pin.id);
             const infoEl = document.getElementById(`infowindow-${pin.id}`);
             if (infoEl) {
@@ -196,13 +229,17 @@ const Map = ({ pins, setPins }) => {
       console.error('Error initializing map:', err);
       setError(err.message);
     }
-  }, [pins, activeOverlay]);
+  }, [pins, activeOverlay, uploadedIcons]);
 
-  // Update marker color when selectedPin changes
+  // Update marker when selectedPin changes
   useEffect(() => {
     Object.entries(markerRefs.current).forEach(([id, ref]) => {
       if (ref && ref.el) {
-        ref.el.style.background = selectedPin == id ? '#dc2626' : '#1abc9c';
+        const img = ref.el.querySelector('img');
+        if (img) {
+          // Add a highlight effect for selected pin
+          img.style.filter = selectedPin == id ? 'drop-shadow(0 0 4px rgba(220, 38, 38, 0.8))' : 'none';
+        }
       }
     });
   }, [selectedPin]);
@@ -482,7 +519,10 @@ const style = document.createElement('style');
 style.innerHTML = `
 .custom-marker {
   cursor: pointer;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+  box-shadow: none !important;
+  background: transparent !important;
+  border: none !important;
+  outline: none !important;
 }
 `;
 document.head.appendChild(style);
