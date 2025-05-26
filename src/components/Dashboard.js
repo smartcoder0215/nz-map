@@ -165,12 +165,13 @@ function Dashboard({ pins, setPins }) {
   };
 
   return (
-    <div className="container mx-auto p-4">
-      <h1 className="text-2xl font-bold mb-6">Admin Dashboard</h1>
+    <div className="container mx-auto px-4 py-6 max-w-7xl">
+      <h1 className="text-2xl md:text-3xl font-bold mb-6">Admin Dashboard</h1>
       
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      {/* Overlay Section */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
         {/* Overlay Image Management */}
-        <div>
+        <div className="w-full">
           <OverlayImageManager onOverlaySelect={handleOverlaySelect} />
         </div>
 
@@ -178,11 +179,13 @@ function Dashboard({ pins, setPins }) {
         {activeOverlay && (
           <div className="p-4 bg-white rounded-lg shadow">
             <h2 className="text-xl font-semibold mb-4">Active Overlay</h2>
-            <img
-              src={activeOverlay.url}
-              alt={activeOverlay.name}
-              className="w-full h-64 object-contain"
-            />
+            <div className="aspect-w-16 aspect-h-9">
+              <img
+                src={activeOverlay.url}
+                alt={activeOverlay.name}
+                className="w-full h-full object-contain"
+              />
+            </div>
             <p className="mt-2 text-sm text-gray-600">{activeOverlay.name}</p>
           </div>
         )}
@@ -193,124 +196,92 @@ function Dashboard({ pins, setPins }) {
           {error}
         </div>
       )}
-      <div className="mt-4 p-4 bg-white rounded-lg shadow">
-        <div className="flex flex-col md:flex-row justify-between items-center mb-6">
-          <h2 className="text-2xl font-bold mb-4 md:mb-0">
-            Pin Dashboard
-          </h2>
-          <button 
-            onClick={openAddModal} 
-            className="px-4 py-2 bg-green-500 text-white rounded-md font-semibold"
-          >
-            + Add Pin
-          </button>
-        </div>
-        <div className="overflow-x-auto">
-          <table className="w-full border-collapse bg-white rounded-lg overflow-hidden">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                  #
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                  Image
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                  Title
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                  Description
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                  Latitude
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                  Longitude
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                  Actions
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-white">
-              {pins.map((pin, idx) => (
-                <tr key={pin.id} className={idx % 2 === 0 ? 'bg-gray-50' : ''}>
-                  <td className="px-4 py-4 text-sm font-medium text-gray-900">
-                    {pin.id}
-                  </td>
-                  <td className="px-4 py-4 text-sm text-gray-500">
-                    <img 
-                      src={pin.image} 
-                      alt={pin.title} 
-                      className="w-16 h-12 object-cover rounded"
-                    />
-                  </td>
-                  <td className="px-4 py-4 text-sm font-medium text-gray-900">
-                    {pin.title}
-                  </td>
-                  <td className="px-4 py-4 text-sm text-gray-500">
-                    {pin.description}
-                  </td>
-                  <td className="px-4 py-4 text-sm text-gray-500">
-                    {pin.coordinates[1]}
-                  </td>
-                  <td className="px-4 py-4 text-sm text-gray-500">
-                    {pin.coordinates[0]}
-                  </td>
-                  <td className="px-4 py-4 text-sm text-gray-500">
-                    <div className="flex gap-2">
-                      <button 
-                        onClick={() => openEditModal(pin)} 
-                        className="text-blue-500 hover:text-blue-700"
-                      >
-                        Edit
-                      </button>
-                      <button 
-                        onClick={() => handleDelete(pin.id)} 
-                        className="text-red-500 hover:text-red-700"
-                      >
-                        Delete
-                      </button>
-                    </div>
-                  </td>
+
+      {/* Pin Management Section */}
+      <div className="mt-8 bg-white rounded-lg shadow">
+        <div className="p-4 md:p-6">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+            <h2 className="text-xl md:text-2xl font-bold">
+              Pin Management
+            </h2>
+            <button
+              onClick={openAddModal}
+              className="w-full md:w-auto px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
+            >
+              Add New Pin
+            </button>
+          </div>
+
+          {/* Pins List */}
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Title</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Location</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {pins.map(pin => (
+                  <tr key={pin.id} className="hover:bg-gray-50">
+                    <td className="px-4 py-3 whitespace-nowrap">
+                      <div className="flex items-center">
+                        <div className="h-10 w-10 flex-shrink-0">
+                          <img
+                            className="h-10 w-10 rounded-full object-cover"
+                            src={pin.image}
+                            alt={pin.title}
+                          />
+                        </div>
+                        <div className="ml-4">
+                          <div className="text-sm font-medium text-gray-900">{pin.title}</div>
+                          <div className="text-sm text-gray-500 truncate max-w-xs">{pin.description}</div>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
+                      {pin.coordinates[1].toFixed(4)}, {pin.coordinates[0].toFixed(4)}
+                    </td>
+                    <td className="px-4 py-3 whitespace-nowrap text-sm font-medium">
+                      <div className="flex space-x-2">
+                        <button
+                          onClick={() => openEditModal(pin)}
+                          className="text-indigo-600 hover:text-indigo-900"
+                        >
+                          Edit
+                        </button>
+                        <button
+                          onClick={() => handleDelete(pin.id)}
+                          className="text-red-600 hover:text-red-900"
+                        >
+                          Delete
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
-      {/* Modal for Add/Edit */}
+
+      {/* Modal */}
       {modalOpen && (
-        <div
-          ref={modalRef}
-          onClick={e => {
-            if (e.target === modalRef.current) closeModal();
-          }}
-          className="fixed top-0 left-0 w-full h-full bg-black bg-opacity-50 flex items-center justify-center"
-        >
-          <div
-            className="bg-white rounded-lg shadow p-0 w-full max-w-4xl relative max-h-90vh"
-            onClick={e => e.stopPropagation()}
-          >
-            {/* Close button */}
-            <button 
-              type="button" 
-              onClick={closeModal} 
-              className="absolute top-4 right-4 bg-none border-none text-gray-500 cursor-pointer z-20 font-semibold"
-            >
-              ×
-            </button>
-            <div className="p-8 overflow-y-auto">
-              <h3 className="text-xl font-semibold mb-4">
-                {editingId ? 'Edit Pin' : 'Add Pin'}
-              </h3>
-              <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div ref={modalRef} className="bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+            <div className="p-6">
+              <h2 className="text-xl font-bold mb-4">
+                {editingId ? 'Edit Pin' : 'Add New Pin'}
+              </h2>
+              <form onSubmit={handleSubmit} className="space-y-4">
                 {/* Main Info */}
                 <div>
                   <div className="font-semibold text-blue-500 mb-2">
                     Main Info
                   </div>
-                  <div className="flex flex-col gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <label className="block font-semibold mb-2">
                         Title
@@ -335,7 +306,7 @@ function Dashboard({ pins, setPins }) {
                         className="w-full p-2 border rounded"
                       />
                     </div>
-                    <div>
+                    <div className="md:col-span-2">
                       <label className="block font-semibold mb-2">Description</label>
                       <input 
                         name="description" 
@@ -347,11 +318,13 @@ function Dashboard({ pins, setPins }) {
                     </div>
                   </div>
                 </div>
-                <div className="border-t border-gray-200 mt-4"></div>
+
                 {/* Coordinates */}
                 <div>
-                  <div className="font-semibold text-green-500 mb-2">Coordinates</div>
-                  <div className="flex flex-col gap-4">
+                  <div className="font-semibold text-blue-500 mb-2">
+                    Coordinates
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <label className="block font-semibold mb-2">Latitude</label>
                       <input 
@@ -376,18 +349,20 @@ function Dashboard({ pins, setPins }) {
                     </div>
                   </div>
                 </div>
-                <div className="border-t border-gray-200 mt-4"></div>
+
                 {/* Links */}
                 <div>
-                  <div className="font-semibold text-red-500 mb-2">Links</div>
-                  <div className="flex flex-col gap-4">
+                  <div className="font-semibold text-blue-500 mb-2">
+                    Links
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <label className="block font-semibold mb-2">Book Now URL</label>
+                      <label className="block font-semibold mb-2">Booking URL</label>
                       <input 
                         name="bookurl" 
                         value={form.bookurl} 
                         onChange={handleChange} 
-                        placeholder="Book Now URL" 
+                        placeholder="Booking URL" 
                         className="w-full p-2 border rounded"
                       />
                     </div>
@@ -401,7 +376,7 @@ function Dashboard({ pins, setPins }) {
                         className="w-full p-2 border rounded"
                       />
                     </div>
-                    <div>
+                    <div className="md:col-span-2">
                       <label className="block font-semibold mb-2">Learn More URL</label>
                       <input 
                         name="learnmore" 
@@ -413,19 +388,21 @@ function Dashboard({ pins, setPins }) {
                     </div>
                   </div>
                 </div>
-                <div className="flex gap-4 mt-4 justify-end">
-                  <button 
-                    type="submit" 
-                    className="px-4 py-2 bg-blue-500 text-white rounded font-semibold"
-                  >
-                    {editingId ? 'Update' : 'Add'}
-                  </button>
-                  <button 
-                    type="button" 
-                    onClick={closeModal} 
-                    className="px-4 py-2 bg-gray-200 text-gray-700 rounded font-semibold"
+
+                {/* Action Buttons */}
+                <div className="flex justify-end space-x-4 pt-4">
+                  <button
+                    type="button"
+                    onClick={closeModal}
+                    className="px-4 py-2 border rounded hover:bg-gray-100"
                   >
                     Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+                  >
+                    {editingId ? 'Update' : 'Create'}
                   </button>
                 </div>
               </form>
