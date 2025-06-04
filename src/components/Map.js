@@ -36,7 +36,7 @@ function pixelToLngLat(x, y, imageWidth, imageHeight, bounds) {
   return [lng, lat];
 }
 
-const Map = ({ pins, setPins }) => {
+const Map = ({ pins, setPins, onMapClickForPin, isPlacingPin }) => {
   const mapContainer = useRef(null);
   const map = useRef(null);
   const [error, setError] = useState(null);
@@ -203,6 +203,13 @@ const Map = ({ pins, setPins }) => {
             .addTo(map.current);
           markerRefs.current[pin.id] = { marker };
         });
+
+        // Click-to-place-pin handler
+        map.current.on('click', (e) => {
+          if (isPlacingPin && typeof onMapClickForPin === 'function') {
+            onMapClickForPin([e.lngLat.lng, e.lngLat.lat]);
+          }
+        });
       });
 
       // Add error handler
@@ -218,7 +225,7 @@ const Map = ({ pins, setPins }) => {
       console.error('Error initializing map:', err);
       setError(err.message);
     }
-  }, [pins, activeOverlay, uploadedIcons]);
+  }, [pins, activeOverlay, uploadedIcons, onMapClickForPin, isPlacingPin]);
 
   // Update marker when selectedPin changes
   useEffect(() => {
@@ -370,6 +377,16 @@ const Map = ({ pins, setPins }) => {
         .addTo(map.current);
     });
   }, [pins]);
+
+  useEffect(() => {
+    if (!map.current) return;
+    const container = map.current.getContainer();
+    if (isPlacingPin) {
+      container.style.cursor = 'default'; // Arrow
+    } else {
+      container.style.cursor = '';
+    }
+  }, [isPlacingPin]);
 
   if (error) {
     return (

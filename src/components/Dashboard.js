@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import OverlayImageManager from './OverlayImageManager';
+import Map from './Map';
 
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
 
@@ -24,6 +25,8 @@ function Dashboard({ pins, setPins }) {
   const [iconUploadFile, setIconUploadFile] = useState(null);
   const [iconUploading, setIconUploading] = useState(false);
   const [iconUploadError, setIconUploadError] = useState(null);
+  const [isPlacingPin, setIsPlacingPin] = useState(false);
+  const mapSectionRef = useRef();
 
   const resetForm = () => setForm({
     title: '',
@@ -227,6 +230,27 @@ function Dashboard({ pins, setPins }) {
     }
   };
 
+  // New: Place pin by clicking map
+  const handlePlacePinClick = () => {
+    resetForm();
+    setEditingId(null);
+    setIsPlacingPin(true);
+    setError(null);
+    // Scroll to map
+    setTimeout(() => {
+      if (mapSectionRef.current) {
+        mapSectionRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    }, 100);
+  };
+
+  // New: Handler for map click
+  const handleMapClickForPin = (lngLat) => {
+    setForm(f => ({ ...f, longitude: lngLat[0], latitude: lngLat[1] }));
+    setIsPlacingPin(false); // Disable placement mode after picking
+    setModalOpen(true); // Ensure modal is open
+  };
+
   return (
     <div className="container mx-auto px-4 py-6 max-w-7xl">
       <h1 className="text-2xl md:text-3xl font-bold mb-6">Admin Dashboard</h1>
@@ -253,12 +277,6 @@ function Dashboard({ pins, setPins }) {
           </div>
         )}
       </div>
-
-      {error && (
-        <div className="mt-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded">
-          {error}
-        </div>
-      )}
 
       {/* Pin Management Section */}
       <div className="mt-8 bg-white rounded-lg shadow">
@@ -337,6 +355,32 @@ function Dashboard({ pins, setPins }) {
             </table>
           </div>
         </div>
+      </div>
+
+      {/* Move Place Pin on Map button here */}
+      <div className="flex justify-center my-6">
+        <button
+          onClick={handlePlacePinClick}
+          className="bg-blue-600 text-white px-4 py-2 rounded"
+        >
+          Place Pin on Map
+        </button>
+      </div>
+
+      {error && (
+        <div className="mt-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded">
+          {error}
+        </div>
+      )}
+
+      {/* Map */}
+      <div ref={mapSectionRef}>
+        <Map
+          pins={pins}
+          setPins={setPins}
+          onMapClickForPin={handleMapClickForPin}
+          isPlacingPin={isPlacingPin}
+        />
       </div>
 
       {/* Modal */}
