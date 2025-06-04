@@ -15,17 +15,13 @@ function OverlayImageManager({ onOverlaySelect }) {
 
   const fetchImages = async () => {
     try {
-      console.log('Fetching overlay images from:', `${API_URL}/api/overlay-images`);
-      setLoading(true);
       const response = await fetch(`${API_URL}/api/overlay-images`);
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
       const data = await response.json();
-      console.log('Fetched images:', data);
       setImages(data);
     } catch (error) {
-      console.error('Error fetching images:', error);
       setError(error.message);
     } finally {
       setLoading(false);
@@ -63,7 +59,6 @@ function OverlayImageManager({ onOverlaySelect }) {
     formData.append('name', selectedFile.name);
 
     try {
-      console.log('Uploading image:', selectedFile.name);
       setLoading(true);
       const response = await fetch(`${API_URL}/api/overlay-images`, {
         method: 'POST',
@@ -76,12 +71,10 @@ function OverlayImageManager({ onOverlaySelect }) {
         throw new Error(data.message || data.error || 'Upload failed');
       }
 
-      console.log('Upload successful:', data);
       await fetchImages();
       setSelectedFile(null);
       e.target.reset();
     } catch (error) {
-      console.error('Error uploading image:', error);
       setError(error.message || 'Failed to upload image. Please try again.');
     } finally {
       setUploading(false);
@@ -91,7 +84,6 @@ function OverlayImageManager({ onOverlaySelect }) {
 
   const handleActivate = async (id) => {
     try {
-      console.log('Activating image:', id);
       setLoading(true);
       const response = await fetch(`${API_URL}/api/overlay-images/${id}/activate`, {
         method: 'PATCH',
@@ -103,11 +95,9 @@ function OverlayImageManager({ onOverlaySelect }) {
       }
 
       const data = await response.json();
-      console.log('Activation successful:', data);
       onOverlaySelect(data);
       await fetchImages();
     } catch (error) {
-      console.error('Error activating image:', error);
       setError(error.message);
     } finally {
       setLoading(false);
@@ -118,7 +108,6 @@ function OverlayImageManager({ onOverlaySelect }) {
     if (!window.confirm('Are you sure you want to delete this image?')) return;
 
     try {
-      console.log('Deleting image:', id);
       setLoading(true);
       const response = await fetch(`${API_URL}/api/overlay-images/${id}`, {
         method: 'DELETE',
@@ -129,10 +118,8 @@ function OverlayImageManager({ onOverlaySelect }) {
         throw new Error(errorData.message || 'Deletion failed');
       }
 
-      console.log('Deletion successful');
       await fetchImages();
     } catch (error) {
-      console.error('Error deleting image:', error);
       setError(error.message);
     } finally {
       setLoading(false);

@@ -3,14 +3,7 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Map from './components/Map';
 import Dashboard from './components/Dashboard';
 
-// Debug environment variables
-console.log('Environment variables:', {
-  REACT_APP_API_URL: process.env.REACT_APP_API_URL,
-  NODE_ENV: process.env.NODE_ENV
-});
-
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
-console.log('Using API URL:', API_URL);
 
 function App() {
   const [pins, setPins] = useState([]);
