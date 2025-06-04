@@ -194,6 +194,26 @@ const Map = ({ pins, setPins, onMapClickForPin, isPlacingPin }) => {
           img.style.objectFit = 'contain';
           img.style.display = 'block';
           img.onerror = () => { img.src = fallbackIcon; };
+          // Attach click handler to marker image
+          img.style.cursor = 'pointer';
+          img.addEventListener('click', (e) => {
+            e.stopPropagation();
+            setSelectedPin(pin.id);
+            updateInfoWindowPosition(pin.coordinates);
+            if (map.current) {
+              map.current.easeTo({
+                center: pin.coordinates,
+                zoom: 7,
+                duration: 1000
+              });
+            }
+          });
+          // Highlight selected marker
+          if (selectedPin === pin.id) {
+            img.style.filter = 'drop-shadow(0 0 4px rgba(220, 38, 38, 0.8))';
+          } else {
+            img.style.filter = 'none';
+          }
           const marker = new mapboxgl.Marker({
             element: img,
             anchor: 'bottom',
@@ -201,7 +221,7 @@ const Map = ({ pins, setPins, onMapClickForPin, isPlacingPin }) => {
           })
             .setLngLat(pin.coordinates)
             .addTo(map.current);
-          markerRefs.current[pin.id] = { marker };
+          markerRefs.current[pin.id] = { marker, el: img };
         });
 
         // Click-to-place-pin handler
