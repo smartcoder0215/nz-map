@@ -1,13 +1,16 @@
 # New Zealand Map Application
 
-An interactive map application showcasing locations across New Zealand with detailed information and booking capabilities.
+An interactive map application showcasing locations across New Zealand with detailed information, booking capabilities, and a modern admin dashboard.
 
 ## Features
 
-- Interactive map with custom markers
-- Location information cards with images and descriptions
-- Booking and direction links for each location
-- Admin dashboard for managing locations
+- Interactive map with custom overlay images
+- **Click-to-place-pin:** Admins can add a pin by clicking on the map; the pin creation modal will open with coordinates pre-filled
+- Location information cards with images, descriptions, and booking/direction links
+- Infowindow (popup) for each pin, always positioned above the selected pin and fully visible
+- Overlay image management (upload, activate, delete)
+- Custom pin icons (upload and select)
+- Admin dashboard for managing locations, overlays, and icons
 - Responsive design for mobile and desktop
 
 ## Tech Stack
@@ -19,9 +22,10 @@ An interactive map application showcasing locations across New Zealand with deta
 
 ## Prerequisites
 
-- Node.js (v14 or higher)
-- MongoDB database
+- Node.js (v16 or higher recommended)
+- MongoDB database (local or Atlas)
 - Mapbox account and access token
+- Cloudinary account for image uploads
 - Railway account for backend deployment
 - Vercel account for frontend deployment
 
@@ -37,6 +41,9 @@ REACT_APP_MAPBOX_TOKEN=your_mapbox_token_here
 ```
 MONGODB_URI=your_mongodb_connection_string
 PORT=5000
+CLOUDINARY_CLOUD_NAME=your_cloudinary_cloud_name
+CLOUDINARY_API_KEY=your_cloudinary_api_key
+CLOUDINARY_API_SECRET=your_cloudinary_api_secret
 ```
 
 ## Local Development Setup
@@ -68,6 +75,7 @@ npm start
 3. Add environment variables:
    - `MONGODB_URI`
    - `PORT`
+   - `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET`
 4. Railway will automatically deploy your backend
 5. Copy the provided Railway URL
 
@@ -94,6 +102,15 @@ map-newzealand/
 ├── package.json
 └── README.md
 ```
+
+## Usage
+
+- Visit `/admin-dashboard` to access the admin dashboard
+- Use the "Place Pin on Map" button to add a pin by clicking on the map
+- The pin creation modal will open with coordinates pre-filled
+- Click any pin to open its infowindow; the map will center and zoom to the pin, and the infowindow will always be fully visible
+- Manage overlay images and pin icons from the dashboard
+- The map disables panning when the mouse is over the infowindow for better UX
 
 ## API Endpoints
 
