@@ -23,6 +23,19 @@ const PIN_ICONS = {
   shopping: '/pin-icons/shopping.png',
 };
 
+// Utility: Convert pixel to lng/lat based on overlay bounds
+function pixelToLngLat(x, y, imageWidth, imageHeight, bounds) {
+  // bounds: [SW, SE, NE, NW]
+  const [sw, se, ne, nw] = bounds;
+  const minLng = sw[0];
+  const maxLng = se[0];
+  const minLat = se[1];
+  const maxLat = ne[1];
+  const lng = minLng + (x / imageWidth) * (maxLng - minLng);
+  const lat = maxLat - (y / imageHeight) * (maxLat - minLat);
+  return [lng, lat];
+}
+
 const Map = ({ pins, setPins }) => {
   const mapContainer = useRef(null);
   const map = useRef(null);
@@ -171,48 +184,24 @@ const Map = ({ pins, setPins }) => {
         // Add pins as markers
         markerRefs.current = {};
         pins.forEach((pin, index) => {
-          const el = document.createElement('div');
-          el.className = 'custom-marker';
-          el.style.position = 'relative';
-          el.style.width = '36px';
-          el.style.height = '44px'; // allow for pin tip
-          el.style.display = 'flex';
-          el.style.alignItems = 'flex-end';
-          el.style.justifyContent = 'center';
-
-          // Create image element for the pin icon
+          // Clean marker rendering: only the image as the marker element
           const img = document.createElement('img');
           const fallbackIcon = uploadedIcons[0] ? uploadedIcons[0].url : '';
           const isValidUrl = typeof pin.icon === 'string' && pin.icon.startsWith('http');
-          console.log('Pin:', pin.title, 'icon:', pin.icon, 'isValidUrl:', isValidUrl, 'fallback:', fallbackIcon);
           img.src = isValidUrl ? pin.icon : fallbackIcon;
           img.style.width = '36px';
           img.style.height = '44px';
           img.style.objectFit = 'contain';
           img.style.display = 'block';
           img.onerror = () => { img.src = fallbackIcon; };
-
-          el.appendChild(img);
-
-          const marker = new mapboxgl.Marker(el, { anchor: 'bottom' })
+          const marker = new mapboxgl.Marker({
+            element: img,
+            anchor: 'bottom',
+            offset: [0, 0]
+          })
             .setLngLat(pin.coordinates)
             .addTo(map.current);
-
-          // Add click handler directly to the marker
-          marker.getElement().addEventListener('click', () => {
-            map.current.easeTo({
-              center: pin.coordinates,
-              zoom: 6,
-              duration: 1000
-            });
-            setSelectedPin(pin.id);
-            const infoEl = document.getElementById(`infowindow-${pin.id}`);
-            if (infoEl) {
-              infoEl.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
-            }
-          });
-
-          markerRefs.current[pin.id] = { marker, el };
+          markerRefs.current[pin.id] = { marker };
         });
       });
 
